@@ -5,10 +5,10 @@
   Fiber Section Analysis in Python
   <br>
 </h1>
-
 <p align="center">
-Define fiber stress-strain properties. Mesh section. Perform moment-curvature and PM interaction surface analysis with ease.
+Define fiber stress-strain properties. Create section. Perform moment-curvature and PM interaction analysis with ease!
 </p>
+
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo.gif?raw=true" alt="demo" style="width: 100%;" />
@@ -25,12 +25,33 @@ TODO: ADD TOC HERE
 
 ## Introduction
 
-TODO
+fkit (fiber-kit) is a fiber section analysis program built with python. It is incredibly powerful, flexible, and easy to use. Perform moment-curvature and P+M interaction analysis with ease! 
+
+Originally meant for reinforced concrete sections, I realized during development that the concept of incrementally increasing curvature and then searching for a neutral axis depth that satisfies equilibrium applies to any material; as long as "plane-section-remain-plane".
 
 
 
+TODO: INSERT PIC OF PM INTERACTION AND MOMENT CURVATURE ANALYSIS
 
 
+
+Notable Features:
+
+* Huge selection of built-in material models (Hognestad, Mander, Todeschini, Ramberg-Osgood, Menegotto-Pinto, and more)
+* Moment curvature analysis
+* P+M interaction analysis
+* Fast and Intuitive to use. Run moment curvature with 4 lines of code
+* Sections can be easily defined with SectionBuilder
+* Beautiful visualizations
+* Flexible and transparent. Export data and view fiber stress-strain
+
+I made this because OpenseesPy is overkill for moment curvature analysis. Why define zero-length elements, integrators, DOF numbering, displacement control, what...? Anyways, I digress.
+
+I thought the end-product was aesthetically pleasing both in the visualizations and the back-end object-oriented design. I put a lot of time and love into this project. Please enjoy! 
+
+If you like what I make, buy me a coffee to keep me going: [https://www.buymeacoffee.com/wcfrobert](https://www.buymeacoffee.com/wcfrobert)
+
+**Disclaimer:** this package is meant for <u>personal or educational use only</u>. Fiber kit is a one-person passion project, not an enterprise-grade software. I did not spent much time debugging all the edge cases. fkit should not be used for commercial purpose of any kind!
 
 
 ## Quick Start
@@ -138,6 +159,18 @@ TODO
 ## Fiber Stress-Strain Models
 
 TODO
+
+Concrete:
+* Hognestad et al (1951)
+* Mander et al (1988)
+* Todeschini et al (1964)
+
+Steel:
+* Bilinear
+* Multilinear - Rex & Easterling (1996)
+* RambergOsgood
+* MenegottoPinto
+* Custom_Trilinear
 
 ## SectionBuilder Templates
 
