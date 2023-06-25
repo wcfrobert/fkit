@@ -13,12 +13,10 @@ section1 = fkit.sectionbuilder.rectangular(width = 24, height = 24, cover = 1.5,
                                            top_bar = [0.6, 2, 1, 0],
                                            bot_bar = [0.6, 4, 2, 3],
                                            concrete_fiber = fiber_concrete,
-                                           steel_fiber = fiber_steel,
-                                           mesh_nx=1,
-                                           mesh_ny=1)
+                                           steel_fiber = fiber_steel)
 
 # moment curvature
-section1.run_moment_curvature(phi_max=0.0005, N_step=150)
+section1.run_moment_curvature(phi_max=0.0003, N_step=100)
 
 # P+M interaction
 section1.run_interaction_ACI(fpc=5, fy=60)

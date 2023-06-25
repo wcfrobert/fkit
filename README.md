@@ -14,7 +14,10 @@ Define fiber stress-strain properties and perform moment-curvature and PM intera
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo.gif?raw=true" alt="demo" style="width: 100%;" />
 </div>
 
-https://github.com/wcfrobert/fkit/blob/master/doc/logo.png?raw=true
+
+
+
+
 ADD TOC
 
 

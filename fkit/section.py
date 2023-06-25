@@ -225,22 +225,27 @@ class Section:
         self.axial = P
         phi_list = np.linspace(0, phi_max, num=N_step)
         step=0
-        x0=self.depth*2
+        x0=self.depth/2
         
         time_start = time.time()
         for curvature in phi_list:
             step +=1
             root = sp.root_scalar(self.verify_equilibrium, args=curvature, method="secant", x0=0, x1=x0+0.1)
-            if not root.converged:
-                print("\tstep {}: Could not converge...Ending moment curvature analysis at phi = {}".format(step,curvature))
-                print(root.flag)
-                self.curvature.append(curvature)
-                self.neutral_axis.append(0)
-                self.momentx.append(0)
-                self.momenty.append(0)
-                break
+            
+            # commented this out to brute force through cases slope becomes almost horizontal
+            # otherwise analysis may stop prematurely around very small curvatures
+            
+            # if not root.converged:
+            #     print("\tstep {}: Could not converge...Ending moment curvature analysis at phi = {}".format(step,curvature))
+            #     print(root.flag)
+            #     self.curvature.append(curvature)
+            #     self.neutral_axis.append(0)
+            #     self.momentx.append(0)
+            #     self.momenty.append(0)
+            #     break
             
             correct_NA = root.root
+            print(correct_NA)
             sumMx = 0
             sumMy = 0
             for f in self.patch_fibers:

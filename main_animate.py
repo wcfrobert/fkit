@@ -19,8 +19,8 @@ section2 = fkit.sectionbuilder.rectangular_confined(width = 15,
                                                     core_fiber = fiber_confined, 
                                                     cover_fiber = fiber_unconfined, 
                                                     steel_fiber = fiber_steel,
-                                                    mesh_nx=1.5,
-                                                    mesh_ny=1.5)
+                                                    mesh_nx=0.75,
+                                                    mesh_ny=0.75)
 
 # rotate and mesh section
 section2.add_bar(coord=[-6,0], area=0.6, fiber=fiber_steel)
@@ -29,10 +29,10 @@ section2.mesh()
 
 
 # moment-curvature analysis
-section2.run_moment_curvature(P=-180, phi_max=0.004, N_step=150)
+section2.run_moment_curvature(P=-180, phi_max=0.0039, N_step=100)
 
 # plot results
-#fkit.plotter.plot_MK(section2)
+fkit.plotter.plot_MK(section2)
 
 
 # animate results
