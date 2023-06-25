@@ -232,7 +232,7 @@ class Section:
             step +=1
             root = sp.root_scalar(self.verify_equilibrium, args=curvature, method="secant", x0=0, x1=x0+0.1)
             
-            # commented this out to brute force through cases slope becomes almost horizontal
+            # commented this out to brute force through cases where derivative becomes horizontal
             # otherwise analysis may stop prematurely around very small curvatures
             
             # if not root.converged:
