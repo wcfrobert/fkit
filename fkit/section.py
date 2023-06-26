@@ -245,7 +245,6 @@ class Section:
             #     break
             
             correct_NA = root.root
-            print(correct_NA)
             sumMx = 0
             sumMy = 0
             for f in self.patch_fibers:
