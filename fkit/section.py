@@ -1,6 +1,6 @@
 import numpy as np
 import math
-import scipy.optimize as sp
+#import scipy.optimize as sp
 import itertools
 import os
 import copy
@@ -221,7 +221,7 @@ class Section:
             increases, some minor-axis moment must develop to maintain equilibrium and to keep the 
             neutral-axis in the same user-specified orientation.
         """
-        # use scipy root finding algorithm to find neutral axis depth
+        # use root finding algorithm to find neutral axis depth
         self.axial = P
         phi_list = np.linspace(0, phi_max, num=N_step)
         step=0
@@ -230,11 +230,10 @@ class Section:
         time_start = time.time()
         for curvature in phi_list:
             step +=1
-            root = sp.root_scalar(self.verify_equilibrium, args=curvature, method="secant", x0=0, x1=x0+0.1)
-            
-            # commented this out to brute force through cases where derivative becomes horizontal
-            # otherwise analysis may stop prematurely around very small curvatures
-            
+            root = secant_method(self.verify_equilibrium, args=curvature, x0=0, x1=x0+0.1)
+            correct_NA = root
+            #root = sp.root_scalar(self.verify_equilibrium, args=curvature, method="secant", x0=0, x1=x0+0.1)
+            #correct_NA = root.root
             # if not root.converged:
             #     print("\tstep {}: Could not converge...Ending moment curvature analysis at phi = {}".format(step,curvature))
             #     print(root.flag)
@@ -244,7 +243,6 @@ class Section:
             #     self.momenty.append(0)
             #     break
             
-            correct_NA = root.root
             sumMx = 0
             sumMy = 0
             for f in self.patch_fibers:
@@ -690,3 +688,31 @@ class Section:
                         -self.PM_surface[180][0][i],
                         self.PM_surface[180][2][i]
                         ))
+
+
+
+
+def secant_method(func,args,x0,x1,TOL=1e-4, max_iteration = 100):
+    # edge case for when curvature = 0
+    if args == 0:  
+        return x0
+    
+    # start iteration
+    for i in range(max_iteration):
+        fx0 = func(x0, args)
+        fx1 = func(x1, args)
+        
+        if abs(fx1 - fx0) < TOL:  # converged
+            return x1
+
+        try:
+            x_next = x1 - fx1 * (x1 - x0) / (fx1 - fx0)
+        except ZeroDivisionError:
+            print("\tError: Division by zero occurred. The method failed.")
+            return None
+
+        x0, x1 = x1, x_next
+
+    print("\tWarning: Maximum number of iterations reached. The method may not have converged.")
+    print("\tsumF = {:.2f}".format(func(x1,args)))
+    return x1

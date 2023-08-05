@@ -61,7 +61,7 @@ Step 3: Moment curvature analysis
 #########################################
 """
 # moment-curvature analysis
-section2.run_moment_curvature(P=-180, phi_max=0.002, N_step=100)
+section2.run_moment_curvature(P=-180, phi_max=0.003, N_step=100)
 
 # plot results
 fkit.plotter.plot_MK(section2)
@@ -100,6 +100,6 @@ Step 5: Data export
 #########################################
 """
 # export all data to csv
-section2.export_data()
+#section2.export_data()
 
 
