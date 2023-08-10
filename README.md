@@ -56,7 +56,7 @@ Notable Features:
 </div>
 
 
-**Disclaimer:** this package is meant for <u>personal or educational use only</u>. Fiber kit is a one-person passion project, not an enterprise-grade software. I did not spent much time debugging all the edge cases. fkit should not be used for commercial purpose of any kind!
+**Disclaimer:** this package is meant for <u>personal or educational use only</u>. Fiber kit is a one-person passion project, not an enterprise-grade software.I did not allot much time for debugging or testing. fkit should not be used for commercial purpose of any kind!
 
 
 
@@ -105,19 +105,19 @@ plot_PM(section1)
 section1.export_data()
 ```
 
-Please note that fkit is agnostic when it comes to units. The above example script uses US imperial unit (kips, in, ksi). You may also use SI units (N, mm, MPa). Just make sure your unit input is consistent.
-
-`plot_MK()` and `plot_PM()` produces the visualizations below. `export_data()` generates a result folder in the current working directory.
-
-
-<div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.png?raw=true" alt="demo" style="width: 100%;" />
-</div>
 Three other sample scripts are provided to help get the users up and running:
 
 * `main_full.py` - illustrates all the major functionalities of fkit
 * `main_notebook.ipynb` - for users more accustomed to notebook environments
 * `main_fiber.py` - for testing out various fiber material definitions
+
+Please note that fkit is agnostic when it comes to units. The above example script uses US imperial unit (kips, in, ksi). You may also use SI units (N, mm, MPa). Just make sure your unit input is consistent.
+
+`plot_MK()` and `plot_PM()` produces the visualizations below. `export_data()` generates a result folder in the current working directory.
+
+<div align="center">
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.png?raw=true" alt="demo" style="width: 70%;" />
+</div>
 
 
 
@@ -125,7 +125,7 @@ Three other sample scripts are provided to help get the users up and running:
 
 ## 3.0 Installation
 
-**<u>Option 1: Anaconda Python Distribution</u>**
+**Option 1: Anaconda Python Distribution**
 
 For the casual users, using the base Anaconda Python environment is recommended. This is by far the easiest method of installation. Users don't need to worry about dependencies and setting up virtual environments. The following packages are used in this project:
 
@@ -140,8 +140,7 @@ Installation procedure:
 2. Download this package (click the green "Code" button and download zip file)
 3. Open and run "main.py" in Anaconda's Spyder IDE. Make sure working directory is correctly configured.
 
-
-**<u>Option 2: Vanilla Python</u>**
+**Option 2: Vanilla Python**
 
 1. Download this project to a folder of your choosing
     ```
@@ -178,7 +177,7 @@ pip install fkit
 
 ## 4.0 Usage
 
-Here is a comprehensive list of all the commands that is available to the user. In addition to the documentation provided herein, the user may access docstrings of any method:
+In addition to the documentation provided herein, the user may access docstrings of all methods:
 
 ```python
 # get help by viewing a method's docstring
@@ -186,11 +185,17 @@ help(fkit.patchfiber.Hognestad)
 fkit.patchfiber.Hognestad?
 ```
 
+<div align="center">
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/helpcommand.png?raw=true" alt="demo" style="width: 100%;" />
+</div>
 
 
-<u>Defining material properties:</u>
 
-See Section 5.0 of README.
+
+
+Here is a comprehensive list of all the commands that is available to the user. 
+
+**Defining material properties (Section 5.0 of README)**
 
 * `fkit.patchfiber.Hognestad()`
 * `fkit.patchfiber.Todeschini()`
@@ -208,9 +213,7 @@ See Section 5.0 of README.
 
 
 
-<u>Defining sections manually:</u>
-
-See Section 6.0 of README.
+**Defining sections manually (Section 6.0 of README)**
 
 * `fkit.section.add_patch()`
 * `fkit.section.add_bar_group()`
@@ -219,9 +222,7 @@ See Section 6.0 of README.
 
 
 
-<u>Defining sections with SectionBuilder:</u>
-
-See Section 7.0 of README.
+**Defining sections with SectionBuilder (Section 7.0 of README)**
 
 * `fkit.sectionbuilder.rectangular()`
 * `fkit.sectionbuilder.rectangular_confined()`
@@ -237,9 +238,7 @@ See Section 7.0 of README.
 
 
 
-<u>General section commands</u>
-
-See Section 6.0 of README.
+**General section commands (Section 6.0 of README)**
 
 * `fkit.section.run_moment_curvature()`
 * `fkit.section.run_interaction()`
@@ -249,9 +248,7 @@ See Section 6.0 of README.
 
 
 
-<u>Visualization:</u>
-
-See Section 8.0 of README.
+**Visualization (Section 8.0 of README)**
 
 * `fkit.plotter.preview_fiber()`
 * `fkit.plotter.preview_section()`
@@ -370,35 +367,25 @@ section2.export_data()
 Two types of fibers are available. The difference between patch fibers and node fibers are as follows:
 
 * **Patch fibers** are mainly used for concrete (but not always). A patch fiber has 4 vertices and occupies some area geometrically which is calculated internally. 
-* **Node fibers** are always used for rebar.** A node fiber is defined by a centroidal coordinate (a single point) and do not occupy any physical space. Instead, it is assigned a user-specified area.
+* **Node fibers** are always used for rebar. A node fiber is defined by a centroidal coordinate (a single point) and do not occupy any physical space. Instead, it is assigned a user-specified area.
 
 There are currently 7 material models available in fkit.
 
-* **Hognestad et al (1951)**
-  * general purpose concrete
-
-* **Mander et al (1988)** 
-  * recommended for confined concrete
-
-* **Todeschini et al (1964)** 
-  * recommended for unconfined concrete
-
-* **Bilinear** 
-  * simple bilinear model
-
-* **Multilinear: Rex & Easterling (1996)**  
-  * six linear regions tracing out the recognizable steel stress-strain curve
-
-* **RambergOsgood** 
-  * smooth power function. Often used to fit experimental data
-
-* **MenegottoPinto** 
-  * smooth power function. Often used to fit experimental data. Slightly faster and more robust than RambergOsgood as no Newton-Raphson iteration is needed
-
-* **Custom_Trilinear** 
-  * a highly customizable trilinear model defined by three points
-
-
+* **Hognestad et al (1951)** - General purpose concrete
+  
+* **Mander et al (1988)** - Recommended for confined concrete
+  
+* **Todeschini et al (1964)** - Recommended for unconfined concrete
+  
+* **Bilinear** - Simple bilinear model
+  
+* **Multilinear: Rex & Easterling (1996)**  - Six linear regions tracing out the recognizable steel stress-strain curve
+  
+* **RambergOsgood** - Smooth power function. Often used to fit experimental data
+  
+* **MenegottoPinto** - Smooth power function. Slightly faster and more robust than RambergOsgood as no Newton-Raphson iteration is needed
+  
+* **Custom_Trilinear** - A highly customizable trilinear model defined by three points
 
 
 Note that all input arguments are positive (+)
