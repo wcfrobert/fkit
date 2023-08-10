@@ -116,7 +116,7 @@ Please note that fkit is agnostic when it comes to units. The above example scri
 `plot_MK()` and `plot_PM()` produces the visualizations below. `export_data()` generates a result folder in the current working directory.
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.png?raw=true" alt="demo" style="width: 70%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
 
 
@@ -177,7 +177,7 @@ pip install fkit
 
 ## 4.0 Usage
 
-In addition to the documentation provided herein, the user may access docstrings of all methods:
+In addition to the documentation provided herein, the user may access docstrings of all methods to get more help:
 
 ```python
 # get help by viewing a method's docstring
@@ -186,7 +186,7 @@ fkit.patchfiber.Hognestad?
 ```
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/helpcommand.png?raw=true" alt="demo" style="width: 100%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/helpcommand.png?raw=true" alt="demo" style="width: 90%;" />
 </div>
 
 
@@ -238,7 +238,7 @@ Here is a comprehensive list of all the commands that is available to the user.
 
 
 
-**General section commands (Section 6.0 of README)**
+**Section analysis commands (Section 6.0 of README)**
 
 * `fkit.section.run_moment_curvature()`
 * `fkit.section.run_interaction()`
@@ -395,8 +395,9 @@ Note that all input arguments are positive (+)
 ### 5.1 Hognestad
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/hognestad.png?raw=true" alt="demo" style="width: 100%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/hognestad.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
+
 
 `patchfiber.Hognestad(fpc, Ec="default", eo="default", emax=0.0038, alpha=0, take_tension=False, fr="default", er="default", default_color="lightgray", vertices=None)` 
 
@@ -451,9 +452,8 @@ confined = patchfiber.Hognestad(fpc=6, eo=0.004, emax=0.014)
 
 ### 5.2 Todeschini
 
-
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/todeschini.png?raw=true" alt="demo" style="width: 100%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/todeschini.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
 
 `patchfiber.Todeschini(fpc, Ec="default", eo="default", emax=0.0038, alpha=0, take_tension=False, fr="default", er="default", default_color="lightgray", vertices=None)` 
@@ -503,10 +503,12 @@ unconfined = patchfiber.Todeschini(fpc=5)
 
 ### 5.3 Mander
 
-
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/mander.png?raw=true" alt="demo" style="width: 100%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/mander.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
+
+
+
 `patchfiber.Mander(fpc, eo, emax, Ec="default", alpha=0, take_tension=False, fr="default", er="default", default_color="lightgray", vertices=None)` 
 
 * fpc: float
@@ -560,8 +562,11 @@ confined = patchfiber.Mander(fpc=6, eo=0.004, emax=0.014)
 ### 5.4 Bilinear
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/bilinear.png?raw=true" alt="demo" style="width: 100%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/bilinear.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
+
+
+
 `nodefiber.Bilinear(fy, fu, Es, ey="default", emax=0.1, default_color="black", coord=None, area=None)`
 
 * fy: float
@@ -607,8 +612,11 @@ patch = patchfiber.Bilinear(fy=50, fu=65, Es=29000)
 ### 5.5 Multilinear
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/multilinear.png?raw=true" alt="demo" style="width: 100%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/multilinear.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
+
+
+
 `nodefiber.Multilinear(fy, fu, Es, ey1="default", ey2=0.008, stress1=0.83, stress2=0.98, stress3=1.00, stress4=0.84, strain1=0.03, strain2=0.07, strain3=0.10, strain4=0.16, default_color="black", coord=None, area=None)`
 
 * fy: float
@@ -696,10 +704,12 @@ fiber2 = patchfiber.Bilinear(fy=50, fu=65, Es=29000,
 
 ### 5.6 Custom Trilinear
 
-
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/customtrilinear.png?raw=true" alt="demo" style="width: 100%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/customtrilinear.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
+
+
+
 `nodefiber.Custom_Trilinear(strain1p, strain2p, strain3p, stress1p, stress2p, stress3p, strain1n="default", strain2n="default", strain3n="default", stress1n="default", stress2n="default", stress3n="default", default_color="black", coord=None, area=None)`
 
 * strain1p: float
@@ -788,8 +798,11 @@ patch = patchfiber.Custom_Trilinear(stress1p=75, strain1p=0.002,
 ### 5.7 RambergOsgood
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/RambergOsgood.png?raw=true" alt="demo" style="width: 100%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/RambergOsgood.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
+
+
+
 `nodefiber.RambergOsgood(fy, Es, n, emax=0.16, default_color="black", coord=None, area=None)`
 
 * fy: float
@@ -829,10 +842,12 @@ patch = patchfiber.RambergOsgood(fy=60, Es=29000, n=25)
 
 ### 5.8 Menegotto-Pinto
 
-
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/menegottopinto.png?raw=true" alt="demo" style="width: 100%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/menegottopinto.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
+
+
+
 `nodefiber.MenegottoPinto(fy, Es, b, n, emax=0.16, default_color="black", coord=None, area=None)`
 
 * fy: float
