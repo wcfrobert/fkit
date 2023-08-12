@@ -1150,7 +1150,7 @@ fiber_data = my_section.get_patch_fiber_data(location=[23,14])
 
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/previewsection.png?raw=true" alt="demo" style="width: 60%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/previewsection.png?raw=true" alt="demo" style="width: 30%;" />
 </div>
 
 
@@ -1174,7 +1174,7 @@ fiber_data = my_section.get_patch_fiber_data(location=[23,14])
   * section object defined by user
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/animatemk.png?raw=true" alt="demo" style="width: 60%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo.gif?raw=true" alt="demo" style="width: 60%;" />
 </div>
 
 
@@ -1246,13 +1246,13 @@ Copyright (c) 2023 Robert Wang
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/fbd.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
 
-The figure above depicts state of stress where the external forces (highlighted green), and internal forces (highlighted yellow) are in equilibrium. 
+The figure above depicts state of stress where the external forces (highlighted green), and internal forces (highlighted yellow) are in equilibrium. Note that the strain profile is assumed linear; a fundamental assumption in section analysis known as plane-section-remain-plane.
 
 $$\sum F = 0$$
 
 $$\sum M = 0$$
 
-A moment curvature analysis involves incrementally increasing curvature (shown as $$\phi$$ in the above diagram; the Greek letter $\kappa$ is also often used). At each step, a depth of neutral axis is that satisfies equilibrium. The process is displacement-based and can be thought of as increasingly bending a beam. The figure below illustrates this process.
+A moment curvature analysis involves incrementally increasing curvature (shown as $$\phi$$ in the above diagram; sometimes the Greek letter $\kappa$ is also often used). At each step, a depth of neutral axis is determined in order to satisfy equilibrium. The process is displacement-based and can be thought of as increasingly bending a beam further and further. The figure below illustrates this process.
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/momentcurvaturesteps.png?raw=true" alt="demo" style="width: 100%;" />
@@ -1262,28 +1262,24 @@ The moment curvature analysis algorithm is as follows:
 
 1. Section is discretized into patch fibers and node fibers
 2. Slowly increment curvature from 0 to an user-specified target ($\phi_{target}$)
-3. At each curvature ($\phi_i$), use secant method to search for the depth of neutral axis that satisfies equilibrium. For a given neutral axis depth (c):
-      * Calculate fiber depth with respect to top of section
-      * Calculate fiber strain based on NA depth and curvature
-      * Calculate fiber stress based on fiber material properties
-      * Calculate fiber force contribution = stress * area
-      * Calculate fiber moment contribution = force * distance from fiber centroid to section centroid
-4. Neural axis depth is found if:
-          sum(fiber_force) + P = 0
-5. At the correct NA depth, sum moment about section centroid
-          moment = sum(fiber_moment)
-6. Record this point (phi,M) and move to next curvature increment, loop until phi_target
-                 
+3. At each curvature ($\phi$), use secant method to search for the depth of neutral axis that satisfies equilibrium. For a given neutral axis depth ($$c$$) and for each fiber i:
+      * Calculate fiber depth with respect to top of section ($$d_i$$)
+      * Calculate fiber strain based on NA depth and curvature ($$\varepsilon_i = \phi*(d_i - c)$$)
+      * Calculate fiber stress based on fiber material properties ($$\sigma_i =f(\varepsilon_i)$$)
+      * Calculate fiber force contribution ($$F_i = \sigma_i A_i$$)
+        * ($$A_i$$) is fiber area
+      * Calculate fiber moment contribution ($$M_i = F_i e_i$$)
+        * ($$e_i$$) is the distance between fiber centroid to section centroid
+        * ($$e_{ix} = x_{fiber} - x_{section}$$)
+        * ($$e_{iy} = y_{fiber} - y_{section}$$)
+4. Neural axis depth is found if force is in equilibrium (considering applied axial load):
+      * $$\sum F_i - P = 0 $$
 
+5. At the correct NA depth, sum moment about the section centroid
+      * $$M = \sum M_i $$
 
-
-
-
-
-
-
-
-
+6. Record this point ($$\phi, M$$) and move to next curvature increment, loop until reached $$\phi_{target}$$
+                       
 
 
 
