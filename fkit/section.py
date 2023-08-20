@@ -528,10 +528,10 @@ class Section:
     def get_appropriate_NA(self, fy, fpc, Es, beta, alpha):
         """
         generate neutral axis depths in 4 distinct regions
-            1. pure tension to pure bending (5 pts)
-            2. pure bending to fs = fy (20 pts)
-            3. fs=fy to fs=0 (20 pts)
-            4. fs=0 to pure compression (5 pts)
+            1. pure tension to pure bending
+            2. pure bending to fs = fy
+            3. fs=fy to fs=0
+            4. fs=0 to pure compression
         """
         # find rebar with largest depth
         greatest_depth = 0
@@ -547,6 +547,8 @@ class Section:
         c_fs0 = greatest_depth
         
         # c where section in pure bending
+        # root finding usually can't get exactly 0 due to fineness of mesh
+        # instead, let's interpolate linearly P and NA
         def root_func(c_guess):
             sumF=0
             for f in self.patch_fibers:
@@ -557,16 +559,27 @@ class Section:
                 sumF += F
             return sumF
         
-        x0=self.depth/4
-        root = sp.root_scalar(root_func, method="secant", x0=x0, x1=x0+0.1)
-        c_pure_bending = root.root
+        increment = self.depth/100
+        is_net_tension = True
+        c_list = []
+        P_list = []
+        c_current = increment
+        while is_net_tension:
+            P = root_func(c_current)
+            P_list.append(P)
+            c_list.append(c_current)
+            c_current += increment
+            if P < 0:
+                is_net_tension = False
+        
+        c_pure_bending = c_list[-2] + (c_list[-1] - c_list[-2])/(P_list[-2] - P_list[-1]) * P_list[-2]
         
         # create NA points
         NA_depths1 = list(np.linspace(0.01, c_pure_bending, 10))
         NA_depths2 = list(np.linspace(c_pure_bending, c_fsfy, 10))
         NA_depths3 = list(np.linspace(c_fsfy, c_fs0, 10))
-        NA_depths4 = list(np.linspace(c_fs0, 3*self.depth, 5))
-        NA_depth = NA_depths1 + NA_depths2 + NA_depths3 + NA_depths4
+        NA_depths4 = list(np.linspace(c_fs0, 1.25*self.depth, 5))
+        NA_depth = NA_depths1 + NA_depths2 + NA_depths3 + NA_depths4 + [3*self.depth]
         return NA_depth
     
     
