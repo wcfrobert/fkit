@@ -103,11 +103,11 @@ The above example script uses US imperial unit **(kips, in, ksi)**. You may also
 `plot_MK()` and `plot_PM()` produces the visualizations below. `export_data()` generates a result folder in the current working directory.
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.png?raw=true" alt="demo" style="width: 50%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo3.png?raw=true" alt="demo" style="width: 50%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo3.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
 
 
@@ -355,8 +355,9 @@ fkit.patchfiber.Hognestad?
 ## Notes and Assumptions
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/signconvention.png?raw=true" alt="demo" style="width: 60%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/signconvention.png?raw=true" alt="demo" style="width: 40%;" />
 </div>
+
 
 
 * Sign conventions: 
