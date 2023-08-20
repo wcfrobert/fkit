@@ -6,27 +6,27 @@
   <br>
 </h1>
 <p align="center">
-Define fiber stress-strain relationships -> Create section -> Perform moment-curvature and PM interaction analysis with ease.
+DOCUMENTATION
 </p>
 
 
 
 
-<div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo.gif?raw=true" alt="demo" style="width: 100%;" />
-</div>
-
-
-- [1.0 Introduction](#10-introduction)
-- [2.0 Quick Start](#20-quick-start)
-- [3.0 Installation](#30-installation)
-- [4.0 Usage](#40-usage)
-- [5.0 Fiber Stress-Strain Models](#50-fiber-stress-strain-models)
-- [6.0 Section Object](#60-section-object)
-- [7.0 SectionBuilder Templates](#70-sectionbuilder-templates)
-- [8.0 Visualization Options](#80-visualization-options)
-- [9.0 Notes and Assumptions](#90-notes-and-assumptions)
-- [License](#license)
+- [Fiber Material Models](#fiber-material-models)
+  * [Hognestad](#hognestad)
+  * [Todeschini](#todeschini)
+  * [Mander](#mander)
+  * [Bilinear](#bilinear)
+  * [Multilinear](#multilinear)
+  * [Custom Trilinear](#custom-trilinear)
+  * [RambergOsgood](#rambergosgood)
+  * [Menegotto-Pinto](#menegotto-pinto)
+- [Analysis Commands](#analysis-commands)
+  * [Manual Section Creation](#manual-section-creation)
+  * [Moment Curvature and PM Interaction Analysis](#moment-curvature-and-pm-interaction-analysis)
+  * [Extracting Fiber Data](#extracting-fiber-data)
+- [SectionBuilder](#sectionbuilder)
+- [Visualization](#visualization)
 - [APPENDIX: Theoretical Background Moment Curvature](#appendix--theoretical-background-moment-curvature)
 - [APPENDIX: Theoretical Background P+M Interaction Surface](#appendix--theoretical-background-p-m-interaction-surface)
 - [APPENDIX: Validation Problem](#appendix--validation-problem)
@@ -35,336 +35,7 @@ Define fiber stress-strain relationships -> Create section -> Perform moment-cur
 
 
 
-## 1.0 Introduction
-
-fkit (fiber-kit) is a section analysis program implemented in Python that is incredibly powerful, flexible, and easy to use. Perform **moment-curvature** and **P+M interaction** analysis with very few lines of code. Originally meant for reinforced concrete sections, it was later extended to all material type (e.g. wood, steel, FRPs, anything that can be defined by a stress-strain curve). 
-
-Notable Features:
-
-* Large selection of material models (Hognestad, Mander, Todeschini, Ramberg-Osgood, Menegotto-Pinto, etc)
-* Moment curvature analysis
-* P+M interaction analysis
-* Fast and Intuitive to use. Run moment curvature with 4 lines of code
-* Rotate section to any orientation
-* Sections can be quickly defined with SectionBuilder
-* Beautiful visualizations
-* Flexible and transparent. Export data and view fiber stress/strain progression
-
-
-<div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/hello_demo.png?raw=true" alt="demo" style="width: 100%;" />
-</div>
-
-
-**Disclaimer:** this package is meant for <u>personal or educational use only</u>. Fiber kit is a one-person passion project, not an enterprise-grade software.I did not allot much time for debugging or testing. fkit should not be used for commercial purpose of any kind!
-
-
-
-
-
-
-## 2.0 Quick Start
-
-**Installation**
-
-See "Installation" section below for more info. For casual users, use Anaconda Python, download this module, and run Spyder IDE.
-
-**Quick Start Script**
-
-Run main_quickstart.py:
-
-```python
-# import fkit
-import fkit
-from fkit.plotter import plot_MK, plot_PM
-from fkit.patchfiber import Hognestad
-from fkit.nodefiber import Bilinear
-
-# define fibers
-fiber_concrete = Hognestad(fpc=5, take_tension=True)
-fiber_steel    = Bilinear(fy=60, Es=29000)
-
-# Most common sections can be defined with SectionBuilder
-section1 = fkit.sectionbuilder.rectangular(width = 24, height = 24, cover = 1.5,
-                                           top_bar = [0.6, 2, 1, 0],
-                                           bot_bar = [0.6, 4, 2, 3],
-                                           concrete_fiber = fiber_concrete,
-                                           steel_fiber = fiber_steel)
-
-# moment curvature
-section1.run_moment_curvature(phi_target=0.0003)
-
-# P+M interaction
-section1.run_interaction(fpc=5, fy=60, Es=29000)
-
-# plot results
-plot_MK(section1)
-plot_PM(section1)
-
-# export results to csv
-section1.export_data()
-```
-
-Three other sample scripts are provided to help get the users up and running:
-
-* `main_full.py` - illustrates all the major functionalities of fkit
-* `main_notebook.ipynb` - for users more accustomed to notebook environments
-* `main_fiber.py` - for testing out various fiber material definitions
-
-Please note that fkit is agnostic when it comes to units. The above example script uses US imperial unit (kips, in, ksi). You may also use SI units (N, mm, MPa). Just make sure your unit input is consistent.
-
-`plot_MK()` and `plot_PM()` produces the visualizations below. `export_data()` generates a result folder in the current working directory.
-
-<div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.png?raw=true" alt="demo" style="width: 60%;" />
-</div>
-
-
-
-
-
-## 3.0 Installation
-
-**Option 1: Anaconda Python Distribution**
-
-For the casual users, using the base Anaconda Python environment is recommended. This is by far the easiest method of installation. Users don't need to worry about dependencies and setting up virtual environments. The following packages are used in this project:
-
-* Numpy
-* Matplotlib
-* Scipy
-* Pandas
-
-Installation procedure:
-
-1. Download Anaconda python
-2. Download this package (click the green "Code" button and download zip file)
-3. Open and run "main.py" in Anaconda's Spyder IDE. Make sure working directory is correctly configured.
-
-**Option 2: Vanilla Python**
-
-1. Download this project to a folder of your choosing
-    ```
-    git clone https://github.com/wcfrobert/fkit.git
-    ```
-2. Change directory into where you downloaded fkit
-    ```
-    cd fkit
-    ```
-3. Create virtual environment
-    ```
-    py -m venv venv
-    ```
-4. Activate virtual environment
-    ```
-    venv\Scripts\activate
-    ```
-5. Install requirements
-    ```
-    pip install -r requirements.txt
-    ```
-6. run fkit
-    ```
-    py main.py
-    ```
-
-Note that pip install is available.
-
-```
-pip install fkit
-```
-
-
-
-## 4.0 Usage
-
-Performing sophisticated section analyses with fkit is easy and can be broken down into 4 steps:
-
-1. Define fibers material properties
-2. Define section and mesh with previously defined fibers
-3. Run moment curvature or PM interaction analysis
-4. Visualize
-
-Here is a sample script that illustrates most of the functionalities of fkit.
-
-```python
-import fkit
-
-"""
-#########################################
-Step 1: Define fibers
-#########################################
-"""
-# define fiber material properties
-fiber_unconfined = fkit.patchfiber.Todeschini(fpc=5)
-fiber_confined   = fkit.patchfiber.Mander(fpc=6, eo=0.004, emax=0.014)
-fiber_steel      = fkit.nodefiber.Bilinear(fy=60, Es=29000)
-
-# plot and adjust fiber as needed
-fkit.plotter.preview_fiber(fiber_unconfined, x_limit=[-0.008, 0.008])
-fkit.plotter.preview_fiber(fiber_confined, x_limit=[-0.03, 0.03])
-fkit.plotter.preview_fiber(fiber_steel, x_limit=[-0.03, 0.03])
-
-
-"""
-#########################################
-Step 2: Define section
-#########################################
-"""
-# for the most flexibility, user may define section manually patch by patch
-section1 = fkit.section.Section()
-section1.add_patch(xo=1.5, yo=1.5, b=12 ,h=21, nx=1, ny=10, fiber=fiber_confined)
-section1.add_patch(xo=1.5, yo=0, b=12 ,h=1.5, nx=1, ny=2, fiber=fiber_unconfined)
-section1.add_patch(xo=1.5, yo=22.5, b=12 ,h=1.5, nx=1, ny=2, fiber=fiber_unconfined)
-section1.add_patch(xo=0, yo=0, b=1.5 ,h=24, nx=1, ny=10, fiber=fiber_unconfined)
-section1.add_patch(xo=13.5, yo=0, b=1.5 ,h=24, nx=1, ny=10, fiber=fiber_unconfined)
-section1.add_bar_group(xo=1.5, yo=1.5, b=12, h=21, nx=3, ny=3, area=0.6, perimeter_only=True, fiber=fiber_steel)
-
-# finalize geometry. The user also has the ability to rotate the section
-section1.mesh(rotate=45)
-
-# alternatively, most common sections can be quickly defined with SectionBuilder
-# let's define the section above again
-section2 = fkit.sectionbuilder.rectangular_confined(width = 15, 
-                                                    height = 24, 
-                                                    cover = 1.5, 
-                                                    top_bar = [0.6, 3, 1, 0], 
-                                                    bot_bar = [0.6, 3, 1, 0], 
-                                                    core_fiber = fiber_confined, 
-                                                    cover_fiber = fiber_unconfined, 
-                                                    steel_fiber = fiber_steel)
-
-# the user can make additional customizations, but make sure to mesh afterwards.
-section2.add_bar(coord=[-6,0], area=0.6, fiber=fiber_steel)
-section2.add_bar(coord=[6,0], area=0.6, fiber=fiber_steel)
-section2.mesh()
-
-# preview section
-fkit.plotter.preview_section(section1)
-fkit.plotter.preview_section(section2)
-
-
-"""
-#########################################
-Step 3: Moment curvature analysis
-#########################################
-"""
-# moment-curvature analysis
-section2.run_moment_curvature(P=-180, phi_target=0.002)
-
-# plot results
-fkit.plotter.plot_MK(section2)
-
-# put strain gauge at a fiber and retrieve data
-bot_rebar_data = section2.get_node_fiber_data(tag=3)
-fiber_data = section2.get_patch_fiber_data(location=[0,8])
-top_fiber_data = section2.get_patch_fiber_data(location="top")
-bot_fiber_data = section2.get_patch_fiber_data(location="bottom")
-
-# # animate results
-# fkit.plotter.animate_MK(section2)
-
-
-"""
-#########################################
-Step 4: PMM interaction analysis
-#########################################
-"""
-# generate PM interaction surface
-section2.run_interaction(fpc=6, fy=60, Es=29000)
-
-# plot PM interaction surface
-fkit.plotter.plot_PM(section2, P=[50,400], M=[-500,3000])
-
-
-"""
-#########################################
-Step 5: Data export
-#########################################
-"""
-# export all data to csv
-section2.export_data()
-```
-
-In addition to the documentation provided herein, the user may access docstrings of all methods to get more help:
-
-```python
-help(fkit.patchfiber.Hognestad)
-fkit.patchfiber.Hognestad?
-```
-
-<div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/helpcommand.png?raw=true" alt="demo" style="width: 90%;" />
-</div>
-
-
-
-Here is a comprehensive list of all the commands that is available to the user. 
-
-**Defining material properties (Section 5.0 of README)**
-
-* `fkit.patchfiber.Hognestad()`
-* `fkit.patchfiber.Todeschini()`
-* `fkit.patchfiber.Mander()`
-* `fkit.patchfiber.Bilinear()`
-* `fkit.patchfiber.Multilinear()`
-* `fkit.patchfiber.RambergOsgood()`
-* `fkit.patchfiber.MenegottoPinto()`
-* `fkit.patchfiber.Custom_Trilinear()`
-* `fkit.nodefiber.Bilinear()`
-* `fkit.nodefiber.Multilinear()`
-* `fkit.nodefiber.RambergOsgood()`
-* `fkit.nodefiber.MenegottoPinto()`
-* `fkit.nodefiber.Custom_Trilinear()`
-
-
-
-**Defining sections manually (Section 6.0 of README)**
-
-* `fkit.section.add_patch()`
-* `fkit.section.add_bar_group()`
-* `fkit.section.add_bar()`
-* `fkit.section.mesh()`
-
-
-
-**Defining sections with SectionBuilder (Section 7.0 of README)**
-
-* `fkit.sectionbuilder.rectangular()`
-* `fkit.sectionbuilder.rectangular_confined()`
-* `fkit.sectionbuilder.circular()`
-* `fkit.sectionbuilder.flanged()`
-* `fkit.sectionbuilder.wall()`
-* `fkit.sectionbuilder.wall_BE()`
-* `fkit.sectionbuilder.wall_layered()`
-* `fkit.sectionbuilder.wall_speedcore()`
-* `fkit.sectionbuilder.wide_flange()`
-* `fkit.sectionbuilder.W_AISC()`
-* `fkit.sectionbuilder.W_AISC_composite()`
-
-
-
-**Section analysis commands (Section 6.0 of README)**
-
-* `fkit.section.run_moment_curvature()`
-* `fkit.section.run_interaction()`
-* `fkit.section.get_node_fiber_data()`
-* `fkit.section.get_patch_fiber_data()`
-* `fkit.section.export_data()`
-
-
-
-**Visualization (Section 8.0 of README)**
-
-* `fkit.plotter.preview_fiber()`
-* `fkit.plotter.preview_section()`
-* `fkit.plotter.plot_MK()`
-* `fkit.plotter.animate_MK()`
-* `fkit.plotter.plot_PM()`
-
-
-
-
-## 5.0 Fiber Material Models
+## Fiber Material Models
 
 Two types of fibers are available. The difference between patch fibers and node fibers are as follows:
 
@@ -394,7 +65,7 @@ Note that all input arguments are positive (+)
 
 
 
-### 5.1 Hognestad
+### Hognestad
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/hognestad.png?raw=true" alt="demo" style="width: 60%;" />
@@ -451,7 +122,7 @@ confined = patchfiber.Hognestad(fpc=6, eo=0.004, emax=0.014)
 
 
 
-### 5.2 Todeschini
+### Todeschini
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/todeschini.png?raw=true" alt="demo" style="width: 60%;" />
@@ -502,7 +173,7 @@ unconfined = patchfiber.Todeschini(fpc=5)
 
 
 
-### 5.3 Mander
+### Mander
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/mander.png?raw=true" alt="demo" style="width: 60%;" />
@@ -560,7 +231,7 @@ confined = patchfiber.Mander(fpc=6, eo=0.004, emax=0.014)
 
 
 
-### 5.4 Bilinear
+### Bilinear
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/bilinear.png?raw=true" alt="demo" style="width: 60%;" />
@@ -611,7 +282,7 @@ patch = patchfiber.Bilinear(fy=50, fu=65, Es=29000)
 
 
 
-### 5.5 Multilinear
+### Multilinear
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/multilinear.png?raw=true" alt="demo" style="width: 60%;" />
@@ -703,7 +374,7 @@ fiber2 = patchfiber.Bilinear(fy=50, fu=65, Es=29000,
 
 
 
-### 5.6 Custom Trilinear
+### Custom Trilinear
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/customtrilinear.png?raw=true" alt="demo" style="width: 60%;" />
@@ -796,7 +467,7 @@ patch = patchfiber.Custom_Trilinear(stress1p=75, strain1p=0.002,
 
 
 
-### 5.7 RambergOsgood
+### RambergOsgood
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/RambergOsgood.png?raw=true" alt="demo" style="width: 60%;" />
@@ -841,7 +512,7 @@ patch = patchfiber.RambergOsgood(fy=60, Es=29000, n=25)
 
 
 
-### 5.8 Menegotto-Pinto
+### Menegotto-Pinto
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/menegottopinto.png?raw=true" alt="demo" style="width: 60%;" />
@@ -888,9 +559,9 @@ patch = patchfiber.MenegottoPinto(fy=60, Es=29000, b=0.003, n=6)
 
 
 
-## 6.0 Section Analysis Commands
+## Analysis Commands
 
-### 6.1 Manual Section Creation 
+### Manual Section Creation 
 
 `fkit.section.Section.add_patch(xo, yo, b, h, nx, ny, fiber)` - add a rectangular area of patch fibers
 
@@ -982,7 +653,7 @@ my_section.mesh(rotate=35)
 
 
 
-### 6.2 Moment Curvature and PM Interaction Analysis
+### Moment Curvature and PM Interaction Analysis
 
 `fkit.section.Section.run_moment_curvature(phi_target, P=0, N_step=100, show_progress=False)` - start moment curvature analysis
 
@@ -1040,7 +711,7 @@ PM_results = my_section.run_interaction(fpc=4, fy=60, Es=29000)
 
 
 
-### 6.3 Extracting Analysis Data
+### Extracting Fiber Data
 
 `fkit.section.Section.get_node_fiber_data(tag)` - returns moment curvature stress/strain history data of a node fiber.
 
@@ -1092,7 +763,7 @@ fiber_data = my_section.get_patch_fiber_data(location=[23,14])
 
 
 
-## 7.0 SectionBuilder
+## SectionBuilder
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/sectionbuilder.png?raw=true" alt="demo" style="width: 100%;" />
@@ -1119,7 +790,7 @@ fiber_data = my_section.get_patch_fiber_data(location=[23,14])
 
 
 
-## 8.0 Visualization
+## Visualization
 
 `fkit.plotter.preview_fiber(fiber, xlim=[-0.03, 0.03])` - show fiber stress-strain
 
@@ -1191,52 +862,6 @@ fiber_data = my_section.get_patch_fiber_data(location=[23,14])
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/plot_PM.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-## 9.0 Notes and Assumptions
-
-<div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/signconvention.png?raw=true" alt="demo" style="width: 60%;" />
-</div>
-
-
-* Sign conventions: 
-  * +ve is tensile stress/strain, 
-  * -ve is compressive stress/strain
-  * Major axis (x) points to the right
-  * Minor axis (y) points up
-
-* fkit is agnostic when it comes to unit. Please ensure consistent input.
-  * SI Unit: N, mm, MPa
-  * Freedom Unit: kips, in, ksi
-* Node fibers and patch fibers often overlap. Within the compression region, this overlap of concrete and steel area results in some forces being double counted. For most lightly reinforced sections, the change to the final result is insignificant and we simplify the problem without any appreciable loss in accuracy by just ignoring this overlap. 
-
-
-
-
-
-
-## 10.0 License
-
-MIT License
-
-Copyright (c) 2023 Robert Wang
-
-
-
-
-
 
 
 
