@@ -243,7 +243,7 @@ class Section:
         """
         # use root finding algorithm to find neutral axis depth
         self.axial = P
-        phi_list = np.linspace(0, phi_target, num=N_step)
+        phi_list = np.linspace(phi_target/10000, phi_target, num=N_step)
         step=0
         x0=self.depth/2
         
@@ -251,7 +251,7 @@ class Section:
         for curvature in phi_list:
             step +=1
             
-            root = sp.root_scalar(self.verify_equilibrium, args=curvature, method="secant", x0=x0, x1=x0+0.1)
+            root = sp.root_scalar(self.verify_equilibrium, args=curvature, method="secant", x0=0, x1=x0+0.1)
             correct_NA = root.root
             # root = secant_method(self.verify_equilibrium, args=curvature, x0=x0, x1=x0+0.1)
             # correct_NA = root
