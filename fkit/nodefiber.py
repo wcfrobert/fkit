@@ -101,9 +101,9 @@ class BaseNodeFiber:
         else:
             # compression
             stress = strain * Es
-            if stress < fy:
+            if stress < -fy:
                 stress = -fy
-            force = (stress + 0.85*fpc) * self.area
+            force = (stress + 0.85*fpc) * self.area #add 0.85fpc because stress is -ve
             momentx = force * self.ecc[1]
             momenty = force * self.ecc[0]
             return force, momentx, momenty
@@ -138,24 +138,20 @@ class Bilinear(BaseNodeFiber):
     Input parameters: (ALL POSITIVE)
         fy              steel yield stress
         
-        Es              (OPTIONAL) elastic modulus
-                            - Default = 29000 ksi
-                            
+        Es              elastic modulus
+        
+        fu              (OPTIONAL)steel ultimate stress
+                            - Default = fy
+        
         ey              (OPTIONAL) yield strain
                             - Default = fy / Es
-                            
-        beta            (OPTIONAL) strain hardening ratio
-                            - Default = 0
-                            - Beta = 0 is elastic-perfect-plastic (EPP)
-                            - This parameter defines the strain hardening slope (%E)
-                            - (ref A) suggests 0.005 for rebar, 0.002 for mild steel
                             
         emax            (OPTIONAL) maximum strain, after which stress = 0
                             - Default = 0.1
                             - (ref A) suggests 0.16 for rebar, 0.3 for mild steel
                             
-        default_color   (OPTIONAL) color of node for visualization purposes
-                            - Default = "black"
+        default_color   (OPTIONAL) color of patch for visualization purposes
+                            - Default = "slategray"
                             
     Stress-Strain Relationship:
         Behavior is same in compression and tension and is defined by two straight lines and three points:
@@ -173,12 +169,12 @@ class Bilinear(BaseNodeFiber):
     References:
         A. Rex & Easterling (1996). Behavior and Modeling of Mild and Reinforcing Steel.
     """
-    def __init__(self, fy, fu, Es, ey="default", emax=0.1, 
+    def __init__(self, fy, Es, fu="default", ey="default", emax=0.1, 
                  default_color="black", coord=None, area=None):
         super().__init__(coord, area, default_color=default_color)
         self.name = "Bilinear"
         self.fy = fy
-        self.fu = fu
+        self.fu = fy if fu=="default" else fu
         self.Es = Es
         self.ey = fy/Es if ey=="default" else ey
         self.emax = emax

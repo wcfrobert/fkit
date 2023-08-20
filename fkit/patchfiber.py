@@ -618,9 +618,10 @@ class Bilinear(BasePatchFiber):
     Input parameters: (ALL POSITIVE)
         fy              steel yield stress
         
-        fu              steel ultimate stress
-        
         Es              elastic modulus
+        
+        fu              (OPTIONAL)steel ultimate stress
+                            - Default = fy
         
         ey              (OPTIONAL) yield strain
                             - Default = fy / Es
@@ -648,11 +649,11 @@ class Bilinear(BasePatchFiber):
     References:
         A. Rex & Easterling (1996). Behavior and Modeling of Mild and Reinforcing Steel.
     """
-    def __init__(self, fy, fu, Es, ey="default", emax=0.1, default_color="slategray", vertices=None):
+    def __init__(self, fy, Es, fu="default", ey="default", emax=0.1, default_color="slategray", vertices=None):
         super().__init__(vertices, default_color=default_color)
         self.name = "Bilinear"
         self.fy = fy
-        self.fu = fu
+        self.fu = fy if fu=="default" else fu
         self.Es = Es
         self.ey = fy/Es if ey=="default" else ey
         self.emax = emax
