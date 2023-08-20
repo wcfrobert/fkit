@@ -200,8 +200,8 @@ def plot_PM(section, P=None, M=None):
     P0 = [-x for x in section.PM_surface[0][0]]
     M180 = [-x for x in section.PM_surface[180][1]]
     P180 = [-x for x in section.PM_surface[180][0]]
-    axs[1].plot(M0, P0, label="nominal",linestyle="-",c="black", marker=".", markersize=8)
-    axs[1].plot(M180, P180, label="nominal",linestyle="-",c="black", marker=".", markersize=8)
+    axs[1].plot(M0, P0, label="nominal",linestyle="-",c="blue", marker=".", markersize=8)
+    axs[1].plot(M180, P180, label="nominal",linestyle="-",c="blue", marker=".", markersize=8)
     
     # factored interaction surface
     # split factored curve at 0.8Po
@@ -223,10 +223,10 @@ def plot_PM(section, P=None, M=None):
     axs[1].plot(M180_factored, P180_factored, label="factored",linestyle="-",c="red")
     
     # plot peak above 0.8Po with dotted line
-    M0_factored_top = [x for x in section.PM_surface[0][6][split_index:]]
-    P0_factored_top = [-x for x in section.PM_surface[0][5][split_index:]]
-    M180_factored_top = [-x for x in section.PM_surface[180][6][split_index:]]
-    P180_factored_top = [-x for x in section.PM_surface[180][5][split_index:]]
+    M0_factored_top = [x for x in section.PM_surface[0][6][split_index-1:]]
+    P0_factored_top = [-x for x in section.PM_surface[0][5][split_index-1:]]
+    M180_factored_top = [-x for x in section.PM_surface[180][6][split_index-1:]]
+    P180_factored_top = [-x for x in section.PM_surface[180][5][split_index-1:]]
     axs[1].plot(M0_factored_top, P0_factored_top, label="factored",linestyle="--",c="red")
     axs[1].plot(M180_factored_top, P180_factored_top, label="factored",linestyle="--",c="red")
     
