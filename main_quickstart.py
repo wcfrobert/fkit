@@ -1,35 +1,26 @@
 # import fkit
 import fkit
-from fkit.plotter import plot_MK, plot_PM_ACI
-from fkit.patchfiber import Hognestad
-from fkit.nodefiber import Bilinear
 
 # define fibers
-fiber_concrete = Hognestad(fpc=5, take_tension=True)
-fiber_steel    = Bilinear(fy=60)
+fiber_concrete = fkit.patchfiber.Hognestad(fpc=4, take_tension=True)
+fiber_steel    = fkit.nodefiber.Bilinear(fy=60, Es=29000)
 
-# Most common sections can be defined with SectionBuilder
-section1 = fkit.sectionbuilder.rectangular(width = 24, height = 24, cover = 1.5,
-                                           top_bar = [0.6, 2, 1, 0],
-                                           bot_bar = [0.6, 4, 2, 3],
-                                           concrete_fiber = fiber_concrete,
+# create a rectangular beam section with SectionBuilder
+section1 = fkit.sectionbuilder.rectangular(width = 18, 
+                                           height = 24, 
+                                           cover = 2, 
+                                           top_bar = [0.6, 4, 1, 0], 
+                                           bot_bar = [0.6, 4, 2, 3],  
+                                           concrete_fiber = fiber_concrete, 
                                            steel_fiber = fiber_steel)
 
-# moment curvature
-section1.run_moment_curvature(phi_max=0.0003, N_step=100, P=-100)
-
-# P+M interaction
-section1.run_interaction_ACI(fpc=5, fy=60)
+# moment curvature and PM interaction
+MK_results = section1.run_moment_curvature(phi_target=0.0004)
+PM_results = section1.run_PM_interaction(fpc=4, fy=60, Es=29000)
 
 # plot results
-plot_MK(section1)
-plot_PM_ACI(section1)
-
-# export results to csv
-#section1.export_data()
-
-
-
+fkit.plotter.plot_MK(section1)
+fkit.plotter.plot_PM(section1)
 
 
 
