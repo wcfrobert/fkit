@@ -431,7 +431,7 @@ class Section:
         return data_dict
     
 
-    def run_interaction(self, fpc, fy, Es):
+    def run_PM_interaction(self, fpc, fy, Es):
         """
         Start PM interaction analysis per ACI-318. Solution is independent
         of user-specified fibers.
