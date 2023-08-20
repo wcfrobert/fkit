@@ -103,11 +103,11 @@ The above example script uses US imperial unit **(kips, in, ksi)**. You may also
 `plot_MK()` and `plot_PM()` produces the visualizations below. `export_data()` generates a result folder in the current working directory.
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.png?raw=true" alt="demo" style="width: 60%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.png?raw=true" alt="demo" style="width: 80%;" />
 </div>
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo3.png?raw=true" alt="demo" style="width: 60%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo3.png?raw=true" alt="demo" style="width: 80%;" />
 </div>
 
 
@@ -333,7 +333,7 @@ Here is a comprehensive list of all the commands that is available to the user.
 
 
 
-**Refer to the README file within `\doc` folder for detailed documentation along with some theoretical background.** 
+**Refer to the README in `\doc` folder for detailed documentation along with theoretical background.** 
 
 
 
@@ -355,7 +355,7 @@ fkit.patchfiber.Hognestad?
 ## Notes and Assumptions
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/signconvention.png?raw=true" alt="demo" style="width: 40%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/signconvention.png?raw=true" alt="demo" style="width: 45%;" />
 </div>
 
 
@@ -366,10 +366,11 @@ fkit.patchfiber.Hognestad?
   * Major axis (x) points to the right
   * Minor axis (y) points up
 
-* fkit is agnostic when it comes to unit. Please ensure consistent input.
+* Please ensure consistent unit input:
   * SI Unit: N, mm, MPa
   * Freedom Unit: kips, in, ksi
-* Node fibers and patch fibers often overlap. Within the compression region, this overlap of concrete and steel area results in some forces being double counted. For most lightly reinforced sections, the change to the final result is insignificant and we simplify the problem without any appreciable loss in accuracy by just ignoring this overlap. 
+* Node fibers and patch fibers often overlap. Within the compression region, this overlap of concrete and steel area results in some forces being double counted. For most lightly reinforced sections, the change to the final result is insignificant and we simplify the problem without any appreciable loss in accuracy by just ignoring this overlap.
+* Currently, the PM interaction analysis uses the ACI 318-19 assumptions (e.g. rectangular stress block, elastic-perfect-plastic steel, spalling strain of 0.003, etc). These assumptions will override all user definitions. In other words, solution is independent of user-specified material properties. 
 
 
 
