@@ -42,6 +42,7 @@ class BaseNodeFiber:
     """
     def __init__(self, coord, area, default_color):
         self.coord = coord if coord != None else [0,0]
+        self.name = "BaseFiberClass"
         self.area = area if area != None else 1.0
         self.default_color = default_color
         self.ecc = None
@@ -85,10 +86,9 @@ class BaseNodeFiber:
             momenty = force * self.ecc[0]
             return force, momentx, momenty
     
-    def interaction_ACI(self, c, fy, fpc):
+    def interaction_ACI(self, c, fy, fpc, Es):
         """used for finding interaction surface per ACI 318 assumptions"""
         strain = 0.003*(self.depth - c)/c
-        Es = 29000 #ksi
         if strain > 0:
             # tension
             stress = strain * Es
@@ -107,14 +107,16 @@ class BaseNodeFiber:
             momentx = force * self.ecc[1]
             momenty = force * self.ecc[0]
             return force, momentx, momenty
-        
+    
+    #abstractmethod
     def stress_strain(self, strain):
         """
         OVERRIDE - define material stress-strain relationship
         """
         print("WARNING: fiber stress-strain relationship not defined")
         return 0
-        
+    
+    #abstractmethod
     def color_map(self):
         """
         OVERRIDE - define color map for fiber for visualization purposes
@@ -149,34 +151,36 @@ class Bilinear(BaseNodeFiber):
                             - (ref A) suggests 0.005 for rebar, 0.002 for mild steel
                             
         emax            (OPTIONAL) maximum strain, after which stress = 0
-                            - Default = 0.16
+                            - Default = 0.1
                             - (ref A) suggests 0.16 for rebar, 0.3 for mild steel
                             
-        default_color   (OPTIONAL) color of patch for visualization purposes
-                            - Default = "slategray"
+        default_color   (OPTIONAL) color of node for visualization purposes
+                            - Default = "black"
                             
     Stress-Strain Relationship:
-        Behavior is same in compression and tension and is defined by two straight lines.
-        Initial slope is Es, slope after yield is beta*Es. At emax, stress becomes zero (fracture).
+        Behavior is same in compression and tension and is defined by two straight lines and three points:
+            first linear portion: (0,0) up to (ey, fy) with slope of Es
+            second linear portion: (ey, fy) to (emax, fu)
+            after emax, stress becomes zero (fracture).
         
         If strain < ey:
             stress = Es * strain
         If strain > ey:
-            stress = fy + beta*Es*(strain - ey)
+            stress = fy + (fu - fy)/(emax-ey) * (strain - ey)
         If strain > emax:
             stress = 0
             
     References:
         A. Rex & Easterling (1996). Behavior and Modeling of Mild and Reinforcing Steel.
     """
-    def __init__(self, fy, Es=29000, ey="default", beta=0, emax=0.16, 
+    def __init__(self, fy, fu, Es, ey="default", emax=0.1, 
                  default_color="black", coord=None, area=None):
         super().__init__(coord, area, default_color=default_color)
         self.name = "Bilinear"
         self.fy = fy
+        self.fu = fu
         self.Es = Es
         self.ey = fy/Es if ey=="default" else ey
-        self.beta = beta
         self.emax = emax
         
     def stress_strain(self, strain):
@@ -184,9 +188,9 @@ class Bilinear(BaseNodeFiber):
         stress = self.Es * strain
         
         if stress < -self.fy:
-            stress = -self.fy + (self.beta* self.Es*(strain + self.ey))
+            stress = -self.fy + (self.fu-self.fy)/(self.emax-self.ey) *(strain + self.ey)
         elif stress > self.fy:
-            stress = self.fy + (self.beta * self.Es*(strain - self.ey))
+            stress = self.fy + (self.fu-self.fy)/(self.emax-self.ey) *(strain - self.ey)
         
         if self.emax != "inf" and (strain < -self.emax or strain > self.emax):
             stress = 0
@@ -236,8 +240,7 @@ class Multilinear(BaseNodeFiber):
         
         fu              steel ultimate stress
         
-        Es              (OPTIONAL) elastic modulus
-                            - Default = 29000 ksi
+        Es              elastic modulus
                             
         ey1             (OPTIONAL) strain at beginning of yield plateau
                             - Default = fy/Es
@@ -262,8 +265,8 @@ class Multilinear(BaseNodeFiber):
         stress4         (OPTIONAL) stress at end of 6th line (%Fu)
                             - (ref A) recommends 0.84 for rebar, 0.83 for mild steel
                             
-        default_color   (OPTIONAL) color of patch for visualization purposes
-                            - Default = "slategray"
+        default_color   (OPTIONAL) color of node for visualization purposes
+                            - Default = "black"
                             
     Stress-Strain Relationship:
         Behavior is same in compression and tension and is defined by six straight lines.
@@ -287,7 +290,7 @@ class Multilinear(BaseNodeFiber):
     References:
         A. Rex & Easterling (1996). Behavior and Modeling of Mild and Reinforcing Steel.
     """
-    def __init__(self, fy, fu, Es=29000, ey1="default", ey2=0.008,
+    def __init__(self, fy, fu, Es, ey1="default", ey2=0.008,
                  stress1=0.83, stress2=0.98, stress3=1.00, stress4=0.84, 
                  strain1=0.03, strain2=0.07, strain3=0.10, strain4=0.16, 
                  default_color="black", coord=None, area=None):
@@ -375,20 +378,18 @@ class RambergOsgood(BaseNodeFiber):
     Input parameters: (ALL POSITIVE)
         fy              steel yield stress
         
-        Es              (OPTIONAL) elastic modulus
-                            - Default = 29000 ksi
+        Es              elastic modulus
                             
-        n              (OPTIONAL) RambergOsgood parameter
-                            - Default = 25
+        n               RambergOsgood parameter
                             - Lower value = smoother curve
-                            - Adjust as needed to fit your data. 25 works well.
+                            - Adjust as needed to fit your data
                             
         emax            (OPTIONAL) maximum strain, after which stress = 0
                             - Default = 0.16
                             - (ref C) suggests 0.16 for rebar, 0.3 for mild steel
                             
-        default_color   (OPTIONAL) color of patch for visualization purposes
-                            - Default = "slategray"
+        default_color   (OPTIONAL) color of node for visualization purposes
+                            - Default = "black"
                             
     Stress-Strain Relationship:
         Stress-strain behavior is modeled by a smooth power function.
@@ -403,7 +404,7 @@ class RambergOsgood(BaseNodeFiber):
         B. https://mechanicalc.com/reference/mechanical-properties-of-materials#note-strain-hardening-exponent
         C. Rex & Easterling (1996). Behavior and Modeling of Mild and Reinforcing Steel.
     """
-    def __init__(self, fy, Es=29000, n=25, emax=0.16, 
+    def __init__(self, fy, Es, n, emax=0.16, 
                  default_color="black", coord=None, area=None):
         super().__init__(coord, area, default_color=default_color)
         self.name = "RambergOsgood"
@@ -482,25 +483,22 @@ class MenegottoPinto(BaseNodeFiber):
     Input parameters: (ALL POSITIVE)
         fy              steel yield stress
         
-        Es              (OPTIONAL) elastic modulus
-                            - Default = 29000 ksi
+        Es              elastic modulus
                             
-        b               (OPTIONAL) Menegotto Pinto parameter
-                            - Default = 0.003
+        b               Menegotto Pinto parameter
                             - Adjusts strain hardening slope
-                            - Adjust as needed to fit your data.0.003 works well.
+                            - Adjust as needed to fit your data
                             
-        n               (OPTIONAL) Menegotto Pinto parameter
-                            - Default = 6
+        n               Menegotto Pinto parameter
                             - Lower value = smoother curve
-                            - Adjust as needed to fit your data. 6 works well.
+                            - Adjust as needed to fit your data
                             
         emax            (OPTIONAL) maximum strain, after which stress = 0
                             - Default = 0.16
                             - (ref B) suggests 0.16 for rebar, 0.3 for mild steel
                             
-        default_color   (OPTIONAL) color of patch for visualization purposes
-                            - Default = "slategray"
+        default_color   (OPTIONAL) color of node for visualization purposes
+                            - Default = "black"
                             
     Stress-Strain Relationship:
         Stress-strain behavior is modeled by a smooth power function. May be more robust
@@ -515,7 +513,7 @@ class MenegottoPinto(BaseNodeFiber):
         A. Bruneau, Uang, Sabelli (2011). Ductile Design of Steel Structures 2nd ed.
         B. Rex & Easterling (1996). Behavior and Modeling of Mild and Reinforcing Steel.
     """
-    def __init__(self, fy, Es=29000, b=0.003, n=6, emax=0.16, 
+    def __init__(self, fy, Es, b, n, emax=0.16, 
                  default_color="black", coord=None, area=None):
         super().__init__(coord, area, default_color=default_color)
         self.name = "MenegottoPinto"
@@ -604,8 +602,8 @@ class Custom_Trilinear(BaseNodeFiber):
         strain3n         (OPTIONAL) strain at point 3 (compression)
                             - Default = same as positive values
                             
-        default_color   (OPTIONAL) color of patch for visualization purposes
-                            - Default = "slategray"
+        default_color   (OPTIONAL) color of node for visualization purposes
+                            - Default = "black"
                             
     Stress-Strain Relationship:
         Stress-strain behavior is modeled by three straight lines. Can be asymmetrically defined.

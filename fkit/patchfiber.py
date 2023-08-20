@@ -50,6 +50,7 @@ class BasePatchFiber:
     """
     def __init__(self, vertices, default_color):
         self.vertices = vertices if vertices != None else [[0,0],[1,0],[1,1],[0,1],[0,0]]
+        self.name = "BaseFiberClass"
         self.default_color = default_color
         self.ecc = None
         self.depth = None
@@ -125,13 +126,15 @@ class BasePatchFiber:
         momenty = force * self.ecc[0]
         return force, momentx, momenty
     
+    #abstractmethod
     def stress_strain(self, strain):
         """
         OVERRIDE - define material stress-strain relationship
         """
         print("WARNING: fiber stress-strain relationship not defined")
         return 0
-        
+    
+    #abstractmethod
     def color_map(self):
         """
         OVERRIDE - define color map for fiber for visualization purposes
@@ -151,8 +154,9 @@ class Hognestad(BasePatchFiber):
                             - (ref A) 10% reduction accounts for difference between cylinder strength and member strength 
                             
         Ec              (OPTIONAL) modulus of elasticity
-                            - Default = 57000 * sqrt(fpc)
-                            - Equation above assumes fpc is in psi. Specify Ec directly if using other units
+                            - Automatically calculated if not specified. Unit is inferred:
+                            - If fpc < 15 (unit ksi): Default = 57000 * sqrt(fpc*1000)/1000
+                            - If fpc > 15 (unit MPa): Default = 4700 * sqrt(fpc)
                             
         eo              (OPTIONAL) strain at peak stress
                             - Default = 1.8(fo)/Ec
@@ -174,8 +178,9 @@ class Hognestad(BasePatchFiber):
                             - If take_tension = False, stress will always be zero in tension
                             
         fr              (OPTIONAL) modulus of rupture
-                            - Default = 7.5 * lambda * sqrt(fpc)
-                            - Equation per ACI 318
+                            - Automatically calculated if not specified. Unit is inferred:
+                            - If fpc < 15 (unit ksi): Default = 7.5 * sqrt(fpc*1000) / 1000
+                            - If fpc > 15 (unit MPa): Default = 0.62 * sqrt(fpc)
                             
         er              (OPTIONAL) strain at modulus of rupture
                             - Default = 0.00015 
@@ -218,13 +223,19 @@ class Hognestad(BasePatchFiber):
         self.fpc = fpc
         self.alpha = alpha
         
-        self.Ec = 57000*(fpc*1000)**(1/2)/1000 if Ec=="default" else Ec
+        is_imperial_unit = True if fpc <= 15 else False
+        if is_imperial_unit:
+            self.Ec = 57000*math.sqrt(fpc*1000)/1000 if Ec=="default" else Ec
+            self.fr = 7.5*math.sqrt(fpc)/1000 if fr=="default" else fr
+        else:  # SI unit
+            self.Ec = 4700*math.sqrt(fpc) if Ec=="default" else Ec
+            self.fr = 0.62*math.sqrt(fpc) if fr=="default" else fr
+        
         self.eo = -1.8*0.9*fpc/self.Ec if eo=="default" else -eo
         self.emax = -0.0038 if emax=="default" else -emax
         self.fo = -0.9*fpc
         
         self.take_tension = take_tension
-        self.fr = 7.5*math.sqrt(fpc)/1000 if fr=="default" else fr
         self.er = 0.00015 if er=="default" else er
     
     def stress_strain(self, strain):
@@ -296,17 +307,23 @@ class Mander(BasePatchFiber):
         
     Input parameters: (ALL POSITIVE)
         fpc             concrete strength (peak stress)
-                            
-        Ec              (OPTIONAL) modulus of elasticity
-                            - Default = 57000 * sqrt(fpc)
-                            - Equation above assumes fpc is in psi. Specify Ec directly if using other units
-                            
-        eo              (OPTIONAL) strain at peak stress
-                            - Default = 0.002
+        
+        eo              strain at peak stress
                             - For confined concrete, (ref B) provides equations. Ranges from 0.002 to 0.01
                             
-        emax            (OPTIONAL) max strain
-                            - Default = 0.0038
+        emax            max strain
+                            - (ref A) uses 0.0038 which is appropriate for plain unconfined concrete
+                            - For confined concrete, (ref B) provides equations. Ranges from 0.004 to 0.04.
+                            
+        Ec              (OPTIONAL) modulus of elasticity
+                            - Automatically calculated if not specified. Unit is inferred:
+                            - If fpc < 15 (unit ksi): Default = 57000 * sqrt(fpc*1000)/1000
+                            - If fpc > 15 (unit MPa): Default = 4700 * sqrt(fpc)
+                            
+        eo              strain at peak stress
+                            - For confined concrete, (ref B) provides equations. Ranges from 0.002 to 0.01
+                            
+        emax            max strain
                             - (ref A) uses 0.0038 which is appropriate for plain unconfined concrete
                             - For confined concrete, (ref B) provides equations. Ranges from 0.004 to 0.04.
                             
@@ -320,8 +337,9 @@ class Mander(BasePatchFiber):
                             - If take_tension = False, stress will always be zero in tension
                             
         fr              (OPTIONAL) modulus of rupture
-                            - Default = 7.5 * lambda * sqrt(fpc)
-                            - Equation per ACI 318
+                            - Automatically calculated if not specified. Unit is inferred:
+                            - If fpc < 15 (unit ksi): Default = 7.5 * sqrt(fpc*1000) / 1000
+                            - If fpc > 15 (unit MPa): Default = 0.62 * sqrt(fpc)
                             
         er              (OPTIONAL) strain at modulus of rupture
                             - Default = 0.00015 
@@ -353,7 +371,7 @@ class Mander(BasePatchFiber):
         A. Wight & MacGregor (2012). Reinforced Concrete Mechanics & Design 6E.
         B. Moehle (2014). Seismic Design of Reinforced Concrete Buildings
     """
-    def __init__(self, fpc, Ec="default", eo=0.002, emax=0.0038, alpha=0, 
+    def __init__(self, fpc, eo, emax, Ec="default", alpha=0, 
                  take_tension=False, fr="default", er="default",
                  default_color="lightgray", vertices=None):
         
@@ -362,13 +380,19 @@ class Mander(BasePatchFiber):
         self.fpc = fpc
         self.alpha = alpha
         
-        self.Ec = 57000*(fpc*1000)**(1/2)/1000 if Ec=="default" else Ec
+        is_imperial_unit = True if fpc <= 15 else False
+        if is_imperial_unit:
+            self.Ec = 57000*math.sqrt(fpc*1000)/1000 if Ec=="default" else Ec
+            self.fr = 7.5*math.sqrt(fpc)/1000 if fr=="default" else fr
+        else:  # SI unit
+            self.Ec = 4700*math.sqrt(fpc) if Ec=="default" else Ec
+            self.fr = 0.62*math.sqrt(fpc) if fr=="default" else fr
+            
         self.eo = -eo
-        self.emax = -0.0038 if emax=="default" else -emax
+        self.emax = -emax
         self.fo = -1.0*fpc
         
         self.take_tension = take_tension
-        self.fr = 7.5*math.sqrt(fpc)/1000 if fr=="default" else fr
         self.er = 0.00015 if er=="default" else er
     
     def stress_strain(self, strain):
@@ -444,8 +468,9 @@ class Todeschini(BasePatchFiber):
                             - (ref A) 10% reduction accounts for difference between cylinder strength and member strength 
                             
         Ec              (OPTIONAL) modulus of elasticity
-                            - Default = 57000 * sqrt(fpc)
-                            - Equation above assumes fpc is in psi. Specify Ec directly if using other units
+                            - Automatically calculated if not specified. Unit is inferred:
+                            - If fpc < 15 (unit ksi): Default = 57000 * sqrt(fpc*1000)/1000
+                            - If fpc > 15 (unit MPa): Default = 4700 * sqrt(fpc)
                             
         eo              (OPTIONAL) strain at peak stress
                             - Default = 1.71(fo)/Ec
@@ -467,8 +492,9 @@ class Todeschini(BasePatchFiber):
                             - If take_tension = False, stress will always be zero in tension
                             
         fr              (OPTIONAL) modulus of rupture
-                            - Default = 7.5 * lambda * sqrt(fpc)
-                            - Equation per ACI 318
+                            - Automatically calculated if not specified. Unit is inferred:
+                            - If fpc < 15 (unit ksi): Default = 7.5 * sqrt(fpc*1000) / 1000
+                            - If fpc > 15 (unit MPa): Default = 0.62 * sqrt(fpc)
                             
         er              (OPTIONAL) strain at modulus of rupture
                             - Default = 0.00015 
@@ -499,7 +525,7 @@ class Todeschini(BasePatchFiber):
         A. Wight & MacGregor (2012). Reinforced Concrete Mechanics & Design 6E.
         B. Moehle (2014). Seismic Design of Reinforced Concrete Buildings
     """
-    def __init__(self, fpc, Ec="default", eo=0.002, emax=0.0038, alpha=0, 
+    def __init__(self, fpc, Ec="default", eo="default", emax=0.0038, alpha=0, 
                  take_tension=False, fr="default", er="default",
                  default_color="lightgray", vertices=None):
         
@@ -508,13 +534,19 @@ class Todeschini(BasePatchFiber):
         self.fpc = fpc
         self.alpha = alpha
         
-        self.Ec = 57000*(fpc*1000)**(1/2)/1000 if Ec=="default" else Ec
+        is_imperial_unit = True if fpc <= 15 else False
+        if is_imperial_unit:
+            self.Ec = 57000*math.sqrt(fpc*1000)/1000 if Ec=="default" else Ec
+            self.fr = 7.5*math.sqrt(fpc)/1000 if fr=="default" else fr
+        else:  # SI unit
+            self.Ec = 4700*math.sqrt(fpc) if Ec=="default" else Ec
+            self.fr = 0.62*math.sqrt(fpc) if fr=="default" else fr
+            
         self.eo = -1.71*0.9*fpc/self.Ec if eo=="default" else -eo
         self.emax = -0.0038 if emax=="default" else -emax
         self.fo = -0.9*fpc
         
         self.take_tension = take_tension
-        self.fr = 7.5*math.sqrt(fpc)/1000 if fr=="default" else fr
         self.er = 0.00015 if er=="default" else er
     
     def stress_strain(self, strain):
@@ -586,46 +618,43 @@ class Bilinear(BasePatchFiber):
     Input parameters: (ALL POSITIVE)
         fy              steel yield stress
         
-        Es              (OPTIONAL) elastic modulus
-                            - Default = 29000 ksi
-                            
+        fu              steel ultimate stress
+        
+        Es              elastic modulus
+        
         ey              (OPTIONAL) yield strain
                             - Default = fy / Es
                             
-        beta            (OPTIONAL) strain hardening ratio
-                            - Default = 0
-                            - Beta = 0 is elastic-perfect-plastic (EPP)
-                            - This parameter defines the strain hardening slope (%E)
-                            - (ref A) suggests 0.005 for rebar, 0.002 for mild steel
-                            
         emax            (OPTIONAL) maximum strain, after which stress = 0
-                            - Default = 0.16
+                            - Default = 0.1
                             - (ref A) suggests 0.16 for rebar, 0.3 for mild steel
                             
         default_color   (OPTIONAL) color of patch for visualization purposes
                             - Default = "slategray"
                             
     Stress-Strain Relationship:
-        Behavior is same in compression and tension and is defined by two straight lines.
-        Initial slope is Es, slope after yield is beta*Es. At emax, stress becomes zero (fracture).
+        Behavior is same in compression and tension and is defined by two straight lines and three points:
+            first linear portion: (0,0) up to (ey, fy) with slope of Es
+            second linear portion: (ey, fy) to (emax, fu)
+            after emax, stress becomes zero (fracture).
         
         If strain < ey:
             stress = Es * strain
         If strain > ey:
-            stress = fy + beta*Es*(strain - ey)
+            stress = fy + (fu - fy)/(emax-ey) * (strain - ey)
         If strain > emax:
             stress = 0
             
     References:
         A. Rex & Easterling (1996). Behavior and Modeling of Mild and Reinforcing Steel.
     """
-    def __init__(self, fy, Es=29000, ey="default", beta=0, emax=0.16, default_color="slategray", vertices=None):
+    def __init__(self, fy, fu, Es, ey="default", emax=0.1, default_color="slategray", vertices=None):
         super().__init__(vertices, default_color=default_color)
         self.name = "Bilinear"
         self.fy = fy
+        self.fu = fu
         self.Es = Es
         self.ey = fy/Es if ey=="default" else ey
-        self.beta = beta
         self.emax = emax
         
     def stress_strain(self, strain):
@@ -633,9 +662,9 @@ class Bilinear(BasePatchFiber):
         stress = self.Es * strain
         
         if stress < -self.fy:
-            stress = -self.fy + (self.beta* self.Es*(strain + self.ey))
+            stress = -self.fy + (self.fu-self.fy)/(self.emax-self.ey) *(strain + self.ey)
         elif stress > self.fy:
-            stress = self.fy + (self.beta * self.Es*(strain - self.ey))
+            stress = self.fy + (self.fu-self.fy)/(self.emax-self.ey) *(strain - self.ey)
         
         if self.emax != "inf" and (strain < -self.emax or strain > self.emax):
             stress = 0
@@ -684,8 +713,7 @@ class Multilinear(BasePatchFiber):
         
         fu              steel ultimate stress
         
-        Es              (OPTIONAL) elastic modulus
-                            - Default = 29000 ksi
+        Es              elastic modulus
                             
         ey1             (OPTIONAL) strain at beginning of yield plateau
                             - Default = fy/Es
@@ -735,7 +763,7 @@ class Multilinear(BasePatchFiber):
     References:
         A. Rex & Easterling (1996). Behavior and Modeling of Mild and Reinforcing Steel.
     """
-    def __init__(self, fy, fu, Es=29000, ey1="default", ey2=0.008,
+    def __init__(self, fy, fu, Es, ey1="default", ey2=0.008,
                  stress1=0.83, stress2=0.98, stress3=1.00, stress4=0.84, 
                  strain1=0.03, strain2=0.07, strain3=0.10, strain4=0.16, 
                  default_color="slategray", vertices=None):
@@ -823,13 +851,11 @@ class RambergOsgood(BasePatchFiber):
     Input parameters: (ALL POSITIVE)
         fy              steel yield stress
         
-        Es              (OPTIONAL) elastic modulus
-                            - Default = 29000 ksi
+        Es              elastic modulus
                             
-        n               (OPTIONAL) RambergOsgood parameter
-                            - Default = 25
+        n               RambergOsgood parameter
                             - Lower value = smoother curve
-                            - Adjust as needed to fit your data. 25 works well.
+                            - Adjust as needed to fit your data
                             
         emax            (OPTIONAL) maximum strain, after which stress = 0
                             - Default = 0.16
@@ -851,7 +877,7 @@ class RambergOsgood(BasePatchFiber):
         B. https://mechanicalc.com/reference/mechanical-properties-of-materials#note-strain-hardening-exponent
         C. Rex & Easterling (1996). Behavior and Modeling of Mild and Reinforcing Steel.
     """
-    def __init__(self, fy, Es=29000, n=25, emax=0.16, default_color="slategray", vertices=None):
+    def __init__(self, fy, Es, n, emax=0.16, default_color="slategray", vertices=None):
         super().__init__(vertices, default_color=default_color)
         self.name = "RambergOsgood"
         self.fy = fy
@@ -929,18 +955,15 @@ class MenegottoPinto(BasePatchFiber):
     Input parameters: (ALL POSITIVE)
         fy              steel yield stress
         
-        Es              (OPTIONAL) elastic modulus
-                            - Default = 29000 ksi
+        Es              elastic modulus
                             
-        b               (OPTIONAL) Menegotto Pinto parameter
-                            - Default = 0.003
+        b               Menegotto Pinto parameter
                             - Adjusts strain hardening slope
-                            - Adjust as needed to fit your data.0.003 works well.
+                            - Adjust as needed to fit your data.
                             
-        n               (OPTIONAL) Menegotto Pinto parameter
-                            - Default = 6
+        n               Menegotto Pinto parameter
                             - Lower value = smoother curve
-                            - Adjust as needed to fit your data. 6 works well.
+                            - Adjust as needed to fit your data.
                             
         emax            (OPTIONAL) maximum strain, after which stress = 0
                             - Default = 0.16
@@ -962,7 +985,7 @@ class MenegottoPinto(BasePatchFiber):
         A. Bruneau, Uang, Sabelli (2011). Ductile Design of Steel Structures 2nd ed.
         B. Rex & Easterling (1996). Behavior and Modeling of Mild and Reinforcing Steel.
     """
-    def __init__(self, fy, Es=29000, b=0.003, n=6, emax=0.16, default_color="slategray", vertices=None):
+    def __init__(self, fy, Es, b, n, emax=0.16, default_color="slategray", vertices=None):
         super().__init__(vertices, default_color=default_color)
         self.name = "MenegottoPinto"
         self.fy = fy
