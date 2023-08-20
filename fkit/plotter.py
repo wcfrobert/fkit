@@ -11,7 +11,7 @@ def preview_fiber(fiber,x_limit=[-0.03, 0.03]):
         x_limit     max and min strain for x-axis limit
                         OPTIONAL: default = [-0.03, 0.03]
     """
-    strain_x = np.linspace(x_limit[0],x_limit[1],500)
+    strain_x = np.linspace(x_limit[0],x_limit[1],200)
     stress_y = [fiber.stress_strain(a) for a in strain_x]
     
     fig, axs = plt.subplots()
@@ -27,6 +27,36 @@ def preview_fiber(fiber,x_limit=[-0.03, 0.03]):
     axs.axvline(x=0, color = "black", linestyle="-", lw = 0.8)
     plt.tight_layout()
     return fig, strain_x, stress_y
+
+
+def compare_fibers(fibers, labels, x_limit):
+    """
+    Compare material properties of several fibers on one plot
+        fibers          list of fibers
+        labels          list of string labels
+        x_limit         max and min strain for x-axis limit
+    """
+    # range of strain to plot
+    fig, axs = plt.subplots()
+    strain_x = np.linspace(x_limit[0],x_limit[1],200)
+
+    # loop through all fibers and plot
+    for i, f in enumerate(fibers):
+        stress_y = [f.stress_strain(a) for a in strain_x]
+        axs.plot(strain_x, stress_y, label = labels[i])
+
+    # styling
+    fig.suptitle("Fiber Monotonic Stress-Strain Curve")
+    axs.set_xlim(x_limit)
+    axs.set_xlabel("strain")
+    axs.set_ylabel("stress")
+    axs.xaxis.grid()
+    axs.yaxis.grid()
+    axs.legend(loc="best")
+    axs.axhline(y=0, color = "black", linestyle="-", lw = 0.8)
+    axs.axvline(x=0, color = "black", linestyle="-", lw = 0.8)
+    
+    return fig
 
 
 def preview_section(section, show_tag=False):
@@ -215,10 +245,9 @@ def plot_PM(section, P=None, M=None):
     P0_factored = [-x for x in section.PM_surface[0][5][:split_index]]
     M180_factored = [-x for x in section.PM_surface[180][6][:split_index]]
     P180_factored = [-x for x in section.PM_surface[180][5][:split_index]]
-    M0_factored.append(M0_factored[-1])
-    P0_factored.append(P0_factored[-1])
+    # close cap
     M180_factored.append(M0_factored[-1])
-    P180_factored.append(P180_factored[-1])
+    P180_factored.append(P0_factored[-1])
     axs[1].plot(M0_factored, P0_factored, label="factored",linestyle="-",c="red")
     axs[1].plot(M180_factored, P180_factored, label="factored",linestyle="-",c="red")
     
