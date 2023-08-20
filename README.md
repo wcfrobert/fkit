@@ -363,7 +363,8 @@ fkit.patchfiber.Hognestad?
   * SI Unit: **(N, mm, MPa)**
   * Freedom Unit: **(kips, in, ksi)**
 * Node fibers and patch fibers often overlap within the compression region. Consequently, some forces will be double counted. For most lightly reinforced sections, the change to the final result is insignificant and we simplify the problem without any appreciable loss in accuracy by just ignoring this overlap.
-* Currently, the PM interaction analysis routine follows ACI 318-19 assumptions (e.g. rectangular stress block, elastic-perfect-plastic steel, spalling strain of 0.003, etc)
+* Currently, the PM interaction analysis routine is **for concrete sections only** and follows ACI 318-19 assumptions (e.g. rectangular stress block, elastic-perfect-plastic steel, spalling strain of 0.003, etc). Interaction surface is independent of user-specified material properties as all concrete fiber is converted to exhibit rectangular stress block behavior, and all rebar converted to elastic-perfect-plastic.
+* For asymmetric sections (including asymmetrically reinforced sections), some minor-axis moment may develop during moment curvature analysis. Minor-axis moment must develop in order to maintain equilibrium and to keep the neutral-axis in the same user-specified orientation. The orientation of neutral axis need not always be aligned with the applied moment vector.
 
 
 

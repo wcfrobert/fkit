@@ -157,23 +157,15 @@ my_section.mesh(rotate=35)
   * a dataframe containing all relevant analysis results
 
 ```python
-# start moment curvature analysis with target curvature of 0.003 and applied axial load
-# of 180 kips compression
+# moment curvature analysis 180 kips of axial compression
 MK_results = my_section.run_moment_curvature(phi_target=0.003, P=-180)
-
-# Note:
-# For asymmetric sections (including asymmetrically reinforced sections), 
-# some minor-axis moment may develop. This is because orientation of neutral axis
-# is not always equal to orientation of applied moment vector. As curvature increases,
-# some minor-axis moment must develop to maintain equilibrium and to keep the 
-# neutral-axis in the same user-specified orientation.
 ```
 
 
 
 ### PM Interaction Analysis
 
-`fkit.section.Section.run_PM_interaction(fpc, fy, Es)` - runs PM interaction analysis based on ACI 318-19. Note that PM interaction analysis is **fiber-independent**. In other words, the **fiber material properties defined earlier does not matter** as all concrete fibers are converted to exhibit rectangular stress-blocks behavior and all rebar converted to elastic-perfect-plastic.
+`fkit.section.Section.run_PM_interaction(fpc, fy, Es)` - runs PM interaction analysis in accordance with assumptions within ACI 318-19. Note that PM interaction analysis is **fiber-independent**. In other words, the **fiber material properties defined earlier does not matter** as all concrete fibers are converted to exhibit rectangular stress-blocks behavior and all rebar converted to elastic-perfect-plastic.
 
 * fpc: float
   * concrete cylinder strength
@@ -187,9 +179,6 @@ MK_results = my_section.run_moment_curvature(phi_target=0.003, P=-180)
 ```python
 # generate PM interaction surface
 PM_results = my_section.run_interaction(fpc=4, fy=60, Es=29000)
-
-# returns a dictionary where key = orientaiton (from 0 to 360). Values are lists:
-# "P", "Mx", "My", "c", "resistance factor", "P_factored", "Mx_factored", "My_factored"
 ```
 
 
@@ -204,7 +193,7 @@ PM_results = my_section.run_interaction(fpc=4, fy=60, Es=29000)
   * a dictionary of fiber data from moment curvature analysis
 
 ```python
-# return rebar stress/strain history of node fiber 3
+# return rebar stress/strain history of rebar with tag=3
 rebar3_data = my_section.get_node_fiber_data(tag=3)
 
 # returns a dictionary with the following keys
@@ -231,16 +220,20 @@ rebar3_data = my_section.get_node_fiber_data(tag=3)
   * a dictionary of fiber data from moment curvature analysis
 
 ```python
-# retrieve data of fiber closest to coordinate (23,14)
-fiber_data = my_section.get_patch_fiber_data(location=[23,14])
+# retrieve stress/strain data of the exteme compression fiber
+fiber_data = my_section.get_patch_fiber_data(location="top")
+
+# retrieve stress/strain data of concrete fiber closest to (23.4, 14.2)
+fiber_data = my_section.get_patch_fiber_data(location=[23.4, 14.2])
 ```
 
 
 
-`fkit.section.Section.export_data(save_folder="exported_data_fkit")` - export data in csv format in a folder in current working directory. Three files will be generated "MK.csv", PM.csv", and "PM_factored.csv"
+`fkit.section.Section.export_data(save_folder="exported_data_fkit")` - export data in csv format in a folder in current working directory
 
-* save_folder: string
+* save_folder: string (OPTIONAL)
   * name of folder where csv file will be exported
+  * default = "exported_data_fkit"
 
 
 
@@ -290,8 +283,9 @@ fiber_data = my_section.get_patch_fiber_data(location=[23,14])
   * section object defined by user
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/plotmk.png?raw=true" alt="demo" style="width: 60%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
+
 
 
 
@@ -320,8 +314,9 @@ fiber_data = my_section.get_patch_fiber_data(location=[23,14])
   * default = None
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/plot_PM.png?raw=true" alt="demo" style="width: 60%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo3.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
+
 
 
 
@@ -853,44 +848,203 @@ patch = patchfiber.MenegottoPinto(fy=60, Es=29000, b=0.003, n=6)
 
 ## SectionBuilder
 
+SectionBuilder is simply a collection of functions. Each function parametrically constructs a common sections. Some of these are shown below. Rather than defining a section patch by patch, rebar by rebar, a new section can be created with a single function call!
+
+SectionBuilder functions are quite easy to create. Feel free to make a pull request and share your functions with the open-source community.
+
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/sectionbuilder.png?raw=true" alt="demo" style="width: 100%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/sectionbuilder.png?raw=true" alt="demo" style="width: 50%;" />
 </div>
+
 
 
 ### rectangular()
 
+`fkit.sectionbuilder.rectangular(width, height, cover, top_bar, bot_bar, concrete_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
+
+* width
+* height
+* cover
+* top_bar
+* bot_bar
+* concrete_fiber
+* steel_fiber
+* mesh_nx
+* mesh_ny
+
+```python
+# rectangular section
+```
+
+
+
 ### rectangular_confined()
+
+`fkit.sectionbuilder.rectangular_confined(width, height, cover, top_bar, bot_bar, core_fiber, cover_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
+
+* width
+* height
+* cover
+* top_bar
+* bot_bar
+* core_fiber
+* cover_fiber
+* steel_fiber
+* mesh_nx
+* mesh_ny
+
+
 
 ### circular()
 
+`fkit.sectionbuilder.circular(diameter, cover, N_bar, A_bar, core_fiber, cover_fiber, steel_fiber, mesh_n=0.5)`
+
+* diameter
+* cover
+* N_bar
+* A_bar
+* core_fiber
+* cover_fiber
+* steel_fiber
+* mesh_nx
+* mesh_ny
+
+
+
 ### flanged()
+
+`fkit.sectionbuilder.flanged(bw, bf, h, tf, cover, bot_bar, top_bar, slab_bar, core_fiber, cover_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
+
+* bw
+* bf
+* h
+* tf
+* cover
+* bot_bar
+* top_bar
+* slab_bar
+* core_fiber
+* cover_fiber
+* steel_fiber
+* mesh_nx
+* mesh_ny
+
+
 
 ### wall()
 
+`fkit.sectionbuilder.wall(width, length, cover, wall_bar, concrete_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
+
+* width
+* length
+* cover
+* wall_bar
+* concrete_fiber
+* steel_fiber
+* mesh_nx
+* mesh_ny
+
+
+
 ### wall_BE()
+
+`fkit.sectionbuilder.wall_BE(width, length, cover, BE_length, wall_bar, BE_bar, concrete_fiber, BE_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
+
+* width
+* length
+* cover
+* BE_length
+* wall_bar
+* BE_bar
+* concrete_fiber
+* BE_fiber
+* steel_fiber
+* mesh_nx
+* mesh_ny
+
+
+
+
 
 ### wall_layered()
 
+`fkit.sectionbuilder.wall_layered(width1, width2, length, cover, wall_bar1, wall_bar2, concrete_fiber1, concrete_fiber2, steel_fiber1, steel_fiber2, mesh_nx=0.5, mesh_ny=0.5)`
+
+* width1
+* width2
+* length
+* cover
+* wall_bar1
+* wall_bar2
+* concrete_fiber1
+* concrete_fiber2
+* steel_fiber1
+* steel_fiber2
+* mesh_nx
+* mesh_ny
+
+
+
+
+
+### wall_speedcore()
+
+`fkit.sectionbuilder.wall_speedcore(length, width, steel_thickness, concrete_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
+
+* length
+* width
+* steel_thickness
+* concrete_fiber
+* steel_fiber
+* mesh_nx
+* mesh_ny
+
+
+
 ### wide_flange()
+
+`fkit.sectionbuilder.wide_flange(bf, d, tw, tf, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
+
+* bf
+* d
+* tw
+* tf
+* steel_fiber
+* mesh_nx
+* mesh_ny
+
+
 
 ### W_AISC()
 
+`fkit.sectionbuilder.W_AISC(shape, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
+
+* shape
+* steel_fiber
+* mesh_nx
+* mesh_ny
+
+
+
 ### W_AISC_composite()
 
+`fkit.sectionbuilder.W_AISC_composite(shape, slab_thickness, slab_width, slab_gap, slab_bar, cover, concrete_fiber,steel_fiber,rebar_fiber, mesh_nx=0.5, mesh_ny=0.5)`
+
+* shape
+* slab_thickness
+* slab_width
+* slab_gap
+* slab_bar
+* cover
+* concrete_fiber
+* steel_fiber
+* rebar_fiber
+* mesh_nx
+* mesh_ny
 
 
-* `fkit.sectionbuilder.rectangular()`
-* `fkit.sectionbuilder.rectangular_confined()`
-* `fkit.sectionbuilder.circular()`
-* `fkit.sectionbuilder.flanged()`
-* `fkit.sectionbuilder.wall()`
-* `fkit.sectionbuilder.wall_BE()`
-* `fkit.sectionbuilder.wall_layered()`
-* `fkit.sectionbuilder.wall_speedcore()`
-* `fkit.sectionbuilder.wide_flange()`
-* `fkit.sectionbuilder.W_AISC()`
-* `fkit.sectionbuilder.W_AISC_composite()`
+
+
 
 
 
@@ -922,23 +1076,23 @@ The moment curvature analysis algorithm is as follows:
 
 1. Section is discretized into patch fibers and node fibers
 2. Slowly increment curvature from 0 to an user-specified target ($\phi_{target}$)
-3. At each curvature ($\phi$), use secant method to search for the depth of neutral axis that satisfies equilibrium. For a given neutral axis depth ($$c$$) and for each fiber i:
-      * Calculate fiber depth with respect to top of section ($$d_i$$)
-      * Calculate fiber strain based on NA depth and curvature ($$\varepsilon_i = \phi*(d_i - c)$$)
-      * Calculate fiber stress based on fiber material properties ($$\sigma_i =f(\varepsilon_i)$$)
-      * Calculate fiber force contribution ($$F_i = \sigma_i A_i$$)
-        * ($$A_i$$) is fiber area
-      * Calculate fiber moment contribution ($$M_i = F_i e_i$$)
-        * ($$e_i$$) is the distance between fiber centroid to section centroid
-        * ($$e_{ix} = x_{fiber} - x_{section}$$)
-        * ($$e_{iy} = y_{fiber} - y_{section}$$)
+3. At each curvature ($\phi$), use secant method to search for the depth of neutral axis that satisfies equilibrium. For a given neutral axis depth ($c$) and for each fiber i:
+      * Calculate fiber depth with respect to top of section ($d_i$)
+      * Calculate fiber strain based on NA depth and curvature ($\varepsilon_i = \phi*(d_i - c)$)
+      * Calculate fiber stress based on fiber material properties ($\sigma_i =f(\varepsilon_i)$)
+      * Calculate fiber force contribution ($F_i = \sigma_i A_i$)
+        * ($A_i$) is fiber area
+      * Calculate fiber moment contribution ($M_i = F_i e_i$)
+        * ($e_i$) is the distance between fiber centroid to section centroid
+        * ($e_{ix} = x_{fiber} - x_{section}$)
+        * ($e_{iy} = y_{fiber} - y_{section}$)
 4. Neural axis depth is found if force is in equilibrium (considering applied axial load):
-      * $$\sum F_i - P = 0 $$
+      * $\sum F_i - P = 0 $
 
 5. At the correct NA depth, sum moment about the section centroid
-      * $$M = \sum M_i $$
+      * $M = \sum M_i $
 
-6. Record this point ($$\phi, M$$) and move to next curvature increment, loop until reached $$\phi_{target}$$
+6. Record this point ($\phi, M$) and move to next curvature increment, loop until reached $\phi_{target}$
                        
 
 
