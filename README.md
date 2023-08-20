@@ -316,7 +316,7 @@ Here is a comprehensive list of all the commands that is available to the user.
 **Section analysis commands**
 
 * `fkit.section.run_moment_curvature()`
-* `fkit.section.run_interaction()`
+* `fkit.section.run_PM_interaction()`
 * `fkit.section.get_node_fiber_data()`
 * `fkit.section.get_patch_fiber_data()`
 * `fkit.section.export_data()`
@@ -333,11 +333,7 @@ Here is a comprehensive list of all the commands that is available to the user.
 
 
 
-**Refer to the README in `\doc` folder for detailed documentation along with theoretical background.** 
-
-
-
-Alternatively, the user may easily access docstrings of any methods:
+In addition to the documentation provided in the `\doc` folder, the user may easily access docstrings of any methods:
 
 ```python
 help(fkit.patchfiber.Hognestad)
@@ -363,16 +359,15 @@ fkit.patchfiber.Hognestad?
 * Sign conventions: 
   * +ve is tensile stress/strain, 
   * -ve is compressive stress/strain
-  * Major axis (x) points to the right
-  * Minor axis (y) points up
-
 * Please ensure consistent unit input:
-  * SI Unit: N, mm, MPa
-  * Freedom Unit: kips, in, ksi
-* Node fibers and patch fibers often overlap. Within the compression region, this overlap of concrete and steel area results in some forces being double counted. For most lightly reinforced sections, the change to the final result is insignificant and we simplify the problem without any appreciable loss in accuracy by just ignoring this overlap.
-* Currently, the PM interaction analysis uses the ACI 318-19 assumptions (e.g. rectangular stress block, elastic-perfect-plastic steel, spalling strain of 0.003, etc). These assumptions will override all user definitions. In other words, solution is independent of user-specified material properties. 
+  * SI Unit: **(N, mm, MPa)**
+  * Freedom Unit: **(kips, in, ksi)**
+* Node fibers and patch fibers often overlap within the compression region. Consequently, some forces will be double counted. For most lightly reinforced sections, the change to the final result is insignificant and we simplify the problem without any appreciable loss in accuracy by just ignoring this overlap.
+* Currently, the PM interaction analysis routine follows ACI 318-19 assumptions (e.g. rectangular stress block, elastic-perfect-plastic steel, spalling strain of 0.003, etc)
 
 
+
+**Refer to the README in `\doc` folder for detailed documentation along with theoretical background.** 
 
 
 ## License

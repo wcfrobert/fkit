@@ -2,16 +2,20 @@
   <br>
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/logo.png?raw=true" alt="logo" style="zoom:50%;" />
   <br>
-  Fiber Section Analysis in Python
+  Fiber Section Analysis in Python - Documentation
   <br>
 </h1>
-<p align="center">
-DOCUMENTATION
-</p>
 
 
 
 
+
+- [Analysis Commands](#analysis-commands)
+  * [Manual Section Creation](#manual-section-creation)
+  * [Moment Curvature Analysis](#moment-curvature-analysis)
+  * [PM Interaction Analysis](#pm-interaction-analysis)
+  * [Extracting Fiber Data](#extracting-fiber-data)
+- [Visualization](#visualization)
 - [Fiber Material Models](#fiber-material-models)
   * [Hognestad](#hognestad)
   * [Todeschini](#todeschini)
@@ -21,15 +25,303 @@ DOCUMENTATION
   * [Custom Trilinear](#custom-trilinear)
   * [RambergOsgood](#rambergosgood)
   * [Menegotto-Pinto](#menegotto-pinto)
-- [Analysis Commands](#analysis-commands)
-  * [Manual Section Creation](#manual-section-creation)
-  * [Moment Curvature and PM Interaction Analysis](#moment-curvature-and-pm-interaction-analysis)
-  * [Extracting Fiber Data](#extracting-fiber-data)
 - [SectionBuilder](#sectionbuilder)
-- [Visualization](#visualization)
+  * [rectangular()](#rectangular--)
+  * [rectangular_confined()](#rectangular-confined--)
+  * [circular()](#circular--)
+  * [flanged()](#flanged--)
+  * [wall()](#wall--)
+  * [wall_BE()](#wall-be--)
+  * [wall_layered()](#wall-layered--)
+  * [wide_flange()](#wide-flange--)
+  * [W_AISC()](#w-aisc--)
+  * [W_AISC_composite()](#w-aisc-composite--)
 - [APPENDIX: Theoretical Background Moment Curvature](#appendix--theoretical-background-moment-curvature)
 - [APPENDIX: Theoretical Background P+M Interaction Surface](#appendix--theoretical-background-p-m-interaction-surface)
 - [APPENDIX: Validation Problem](#appendix--validation-problem)
+
+
+
+
+## Analysis Commands
+
+### Manual Section Creation 
+
+`fkit.section.Section.add_patch(xo, yo, b, h, nx, ny, fiber)` - add patch fibers within a rectangular area
+
+* xo: float
+  * x coordinate of lower left corner
+* yo: float
+  * y coordinate of lower left corner
+* b: float
+  * width of patch area
+* h: float
+  * height of patch area
+* nx: float
+  * number of fibers along width
+* ny: float
+  * number of fibers along height
+* fiber: fkit.patchfiber object
+  * patch fiber object with user-defined material properties
+
+```python
+# add a rectangular section with 16" width, 20" height, with lower left corner
+# located at (0,0), 5 patches along width, 20 patches along height
+section.add_patch(xo=0, yo=0, b=16, h=20, nx=5, ny=20, fiber=my_fiber)
+```
+
+
+
+`fkit.section.Section.add_bar(coord, area, fiber)` - add a single rebar at specified coordinate
+
+* coord: [float, float]
+  * (x,y) coordinate where node fiber will be added
+* area: float
+  * area of node fiber
+* fiber: fkit.nodefiber object
+  * node fiber object with user-defined material properties
+
+```python
+# add a rebar at (15, 25) with area of 0.6 in^2 
+section.add_bar(coord=[15,25], area=0.6, fiber=my_fiber)
+```
+
+
+
+`fkit.section.Section.add_bar_group(xo, yo, b, h, nx, ny, area, perimeter_only, fiber)` - add a rectangular array of rebar
+
+* xo: float
+  * x coordinate of bottom left corner
+* yo: float
+  * y coordinate of bottom left corner
+* b: float
+  * width of rebar group
+* h: float
+  * height of rebar group
+* nx: float
+  * number of rebar in x
+* ny: float
+  * number of rebar in y
+* area: float
+  * cross sectional area of rebar
+* perimeter_only: boolean
+  * flag for indicating having rebar on perimeter only or fill full array
+* fiber: fkit.nodefiber object
+  *  node fiber object with material properties
+
+
+
+```python
+# add 8 rebar along perimeter of a column. The column is 20"x20", we assume 1.5" cover
+# which means the rectangular array is 17"x17". Each bar having an area of 0.6 in^2
+my_section.add_bar_group(xo=1.5, yo=1.5, b=17, h=17, nx=3, ny=3, 
+                         perimeter_only=True, 
+                         fiber=my_fiber)
+```
+
+
+
+`fkit.section.Section(rotate=0)` finish section creation and mesh.
+
+* rotate: float (OPTIONAL)
+  * rotate the section counter-clockwise by a user-specified angle (in degrees)
+  * default = 0
+
+```python
+# finish section creation and rotate it 35 degrees counter-clockwise
+my_section.mesh(rotate=35)
+```
+
+
+
+### Moment Curvature Analysis
+
+`fkit.section.Section.run_moment_curvature(phi_target, P=0, N_step=100, show_progress=False)` - start moment curvature analysis
+
+* phi_target: float
+  * target curvature which the analysis will attempt to progress to (i.e. how far to push the section)
+  * It is difficult to specify a default value as curvature is unit dependent (i.e. 1/in vs. 1/mm). We can estimate yield curvature as follows assuming 0.003 crushing strain with a corresponding neutral axis depth of 0.25d
+    * $\phi_{yield} = \frac{e_{cu}}{c} \approx \frac{0.003}{0.25d}$
+    * example: 24 in deep section => $\phi_{target} = 0.003 / (0.25)24 = 5.0 \times 10^{-4}   \frac{1}{in}$
+    * example: 600 mm deep section => $\phi_{target} = 0.003 / (0.25)600 = 2.0 \times 10^{-5}  \frac{1}{mm}$
+* P: float (OPTIONAL)
+  * applied axial load (COMPRESSION IS NEGATIVE (-))
+  * default = 0
+* N_step: integer (OPTIONAL)
+  * number of analysis steps to get to target curvature
+  * default = 100
+* show_progress: boolean (OPTIONAL)
+  * flag to print result from each step
+  * default = False
+* RETURNS:
+  * a dataframe containing all relevant analysis results
+
+```python
+# start moment curvature analysis with target curvature of 0.003 and applied axial load
+# of 180 kips compression
+MK_results = my_section.run_moment_curvature(phi_target=0.003, P=-180)
+
+# Note:
+# For asymmetric sections (including asymmetrically reinforced sections), 
+# some minor-axis moment may develop. This is because orientation of neutral axis
+# is not always equal to orientation of applied moment vector. As curvature increases,
+# some minor-axis moment must develop to maintain equilibrium and to keep the 
+# neutral-axis in the same user-specified orientation.
+```
+
+
+
+### PM Interaction Analysis
+
+`fkit.section.Section.run_PM_interaction(fpc, fy, Es)` - runs PM interaction analysis based on ACI 318-19. Note that PM interaction analysis is **fiber-independent**. In other words, the **fiber material properties defined earlier does not matter** as all concrete fibers are converted to exhibit rectangular stress-blocks behavior and all rebar converted to elastic-perfect-plastic.
+
+* fpc: float
+  * concrete cylinder strength
+* fy: float
+  * rebar yield strength
+* Es: float
+  * elastic modulus of rebar
+* RETURNS:
+  * a dataframe containing all relevant analysis results
+
+```python
+# generate PM interaction surface
+PM_results = my_section.run_interaction(fpc=4, fy=60, Es=29000)
+
+# returns a dictionary where key = orientaiton (from 0 to 360). Values are lists:
+# "P", "Mx", "My", "c", "resistance factor", "P_factored", "Mx_factored", "My_factored"
+```
+
+
+
+### Extracting Fiber Data
+
+`fkit.section.Section.get_node_fiber_data(tag)` - returns moment curvature stress/strain history data of a node fiber.
+
+* tag: int
+  * node fiber ID. Use preview_section(show_tag=True) to see node fiber IDs
+* RETURNS:
+  * a dictionary of fiber data from moment curvature analysis
+
+```python
+# return rebar stress/strain history of node fiber 3
+rebar3_data = my_section.get_node_fiber_data(tag=3)
+
+# returns a dictionary with the following keys
+# "coord" - coordinate of node fiber
+# "depth" - depth of node fiber with respect to extreme compression fiber
+# "ecc" - distance from section centroid to node fiber
+# "stress" - stress history
+# "strain" - strain history
+# "force" - force contribution history 
+# "momentx" - moment about x-axis contribution 
+# "momenty" - moment about y-axis contribution 
+```
+
+
+
+`fkit.section.Section.get_patch_fiber_data(location)` - returns moment curvature stress/strain history data of a patch fiber.
+
+* location: float or string
+  * location can be "top", "bottom", or a coordinate list [x,y]
+  * if "top", data from top-most fiber will be reported (max y)
+  * if "bottom", data from bottom-most fiber will be reported (min y)
+  * if a user-specified coordinate, the program will find the nearest fiber
+* RETURNS:
+  * a dictionary of fiber data from moment curvature analysis
+
+```python
+# retrieve data of fiber closest to coordinate (23,14)
+fiber_data = my_section.get_patch_fiber_data(location=[23,14])
+```
+
+
+
+`fkit.section.Section.export_data(save_folder="exported_data_fkit")` - export data in csv format in a folder in current working directory. Three files will be generated "MK.csv", PM.csv", and "PM_factored.csv"
+
+* save_folder: string
+  * name of folder where csv file will be exported
+
+
+
+
+
+## Visualization
+
+`fkit.plotter.preview_fiber(fiber, xlim=[-0.03, 0.03])` - show fiber stress-strain
+
+* fiber: fkit.nodefiber object or fkit.patchfiber object
+  * fiber object defined by user
+* xlim: [float, float] (OPTIONAL)
+  * lower and upper strain limit for plotting purposes
+  * default = [-0.03, 0.03]
+
+
+
+<div align="center">
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/previewfiber.png?raw=true" alt="demo" style="width: 60%;" />
+</div>
+
+
+
+
+`fkit.plotter.preview_section(section, show_tag=False)` - show section geometry
+
+* section: fkit.section object
+  * section object defined by user
+* show_tag: boolean (OPTIONAL)
+  * show rebar ID or not
+  * default = False
+
+
+
+<div align="center">
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/previewsection.png?raw=true" alt="demo" style="width: 30%;" />
+</div>
+
+
+
+
+
+
+`fkit.plotter.plot_MK(section)` - plot moment curvature analysis results
+
+* section: fkit.section object
+  * section object defined by user
+
+<div align="center">
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/plotmk.png?raw=true" alt="demo" style="width: 60%;" />
+</div>
+
+
+
+
+`fkit.plotter.animate_MK(section)` -  generate a folder in current working directory containing pngs which can be converted to gif externally
+
+* section: fkit.section object
+  * section object defined by user
+
+<div align="center">
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo.gif?raw=true" alt="demo" style="width: 60%;" />
+</div>
+
+
+
+`fkit.plotter.plot_PM(section, P=None, M=None)` - plot PM interaction surface
+
+* section: fkit.section object
+  * section object defined by user
+* P: [float] (OPTIONAL)
+  * list of axial demands for plotting
+  * default = None
+
+* M: [float] (OPTIONAL)
+  * list of moment demands for plotting (same length as P)
+  * default = None
+
+<div align="center">
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/plot_PM.png?raw=true" alt="demo" style="width: 60%;" />
+</div>
 
 
 
@@ -559,216 +851,32 @@ patch = patchfiber.MenegottoPinto(fy=60, Es=29000, b=0.003, n=6)
 
 
 
-## Analysis Commands
-
-### Manual Section Creation 
-
-`fkit.section.Section.add_patch(xo, yo, b, h, nx, ny, fiber)` - add a rectangular area of patch fibers
-
-* xo: float
-  * x coordinate of lower left corner
-* yo: float
-  * y coordinate of lower left corner
-* b: float
-  * width of patch area
-* h: float
-  * height of patch area
-* nx: float
-  * number of fibers along width
-* ny: float
-  * number of fibers along height
-* fiber: fkit.patchfiber object
-  * patch fiber object with user-defined material properties
-
-```python
-# add a rectangular section where 16" width, 20" height, with lower left corner
-# located at (0,0), 5 patches along width, 20 patches along height, using a previously
-# defined concrete fiber
-section.add_patch(xo=0, yo=0, b=16, h=20, nx=5, ny=20, fiber=my_fiber)
-```
-
-
-
-`fkit.section.Section.add_bar(coord, area, fiber)` - add a single rebar at specified coordinate
-
-* coord: [float, float]
-  * (x,y) coordinate where node fiber will be added
-* area: float
-  * area of node fiber
-* fiber: fkit.nodefiber object
-  * node fiber object with user-defined material properties
-
-```python
-# add a rebar at (15, 25) with area of 0.6 in^2 using a prevoiusly defined steel fiber
-section.add_bar(coord=[15,25], area=0.6, fiber=my_fiber)
-```
-
-
-
-`fkit.section.Section.add_bar_group(xo, yo, b, h, nx, ny, area, perimeter_only, fiber)` - add a rectangular array of rebar
-
-* xo: float
-  * x coordinate of bottom left corner
-* yo: float
-  * y coordinate of bottom left corner
-* b: float
-  * width of rebar group
-* h: float
-  * height of rebar group
-* nx: float
-  * number of rebar in x
-* ny: float
-  * number of rebar in y
-* area: float
-  * cross sectional area of rebar
-* perimeter_only: boolean
-  * flag for indicating having rebar on perimeter only or fill full array
-* fiber: fkit.nodefiber object
-  *  node fiber object with material properties
-
-
-
-```python
-# add 8 rebar along perimeter of a column. The column is 20"x20", we assume 1.5" cover
-# which means the rectangular array is 17"x17". Each bar has area of 0.6 in^2
-my_section.add_bar_group(xo=1.5, yo=1.5, 
-                         b=17, h=17, 
-                         nx=3, ny=3, 
-                         perimeter_only=True, 
-                         fiber=my_fiber)
-```
-
-
-
-`fkit.section.Section(rotate=0)` finish section creation and mesh.
-
-* rotate: float (OPTIONAL)
-  * rotate the section counter-clockwise by a user-specified angle (in degrees)
-  * default = 0
-
-```python
-# finish section creation and rotate it 35 degrees
-my_section.mesh(rotate=35)
-```
-
-
-
-### Moment Curvature and PM Interaction Analysis
-
-`fkit.section.Section.run_moment_curvature(phi_target, P=0, N_step=100, show_progress=False)` - start moment curvature analysis
-
-* phi_target: float
-  * target curvature which the analysis will attempt to progress to (i.e. how far to push the section)
-  * It is difficult to specify a default value as curvature is unit dependent (i.e. 1/in vs. 1/mm). A good starting point is to estimate yield curvature as
-    * phi_yield ~= ecu / (1-j)d ~= 0.003 / 0.25d
-    * example: 24 in deep section => 0.003 / (0.25)24 = 5.0 e-4   1/in
-    * example: 600 mm deep section => 0.003 / (0.25)600 = 2.0 e-5  1/mm
-* P: float (OPTIONAL)
-  * applied axial load (COMPRESSION IS NEGATIVE (-))
-  * default = 0
-* N_step: integer (OPTIONAL)
-  * number of analysis steps to get to target curvature
-  * default = 100
-* show_progress: boolean (OPTIONAL)
-  * flag to print result from each step
-  * default = False
-* RETURNS:
-  * a dataframe containing all relevant analysis results
-
-```python
-# start moment curvature analysis with target curvature of 0.003 and applied axial load
-# of 180 kips compression
-MK_results = my_section.run_moment_curvature(phi_target=0.003, P=-180)
-
-# Note:
-# For asymmetric sections (including asymmetrically reinforced sections), 
-# some minor-axis moment may develop. This is because orientation of neutral axis
-# is not always equal to orientation of applied moment vector. As curvature increases,
-# some minor-axis moment must develop to maintain equilibrium and to keep the 
-# neutral-axis in the same user-specified orientation.
-```
-
-
-
-`fkit.section.Section.run_interaction(fpc, fy, Es)` - runs PM interaction analysis based on ACI 318-19. Note that PM interaction analysis is **fiber-independent**. In other words, the **fiber material properties defined earlier does not matter** as all concrete fibers are converted to exhibit rectangular stress-blocks behavior and all rebar converted to elastic-perfect-plastic.
-
-* fpc: float
-  * concrete cylinder strength
-* fy: float
-  * rebar yield strength
-* Es: float
-  * elastic modulus of rebar
-* RETURNS:
-  * a dataframe containing all relevant analysis results
-
-```python
-# generate PM interaction surface
-PM_results = my_section.run_interaction(fpc=4, fy=60, Es=29000)
-
-# returns a dictionary where key = orientaiton (from 0 to 360). Values are lists:
-# "P", "Mx", "My", "c", "resistance factor", "P_factored", "Mx_factored", "My_factored"
-```
-
-
-
-### Extracting Fiber Data
-
-`fkit.section.Section.get_node_fiber_data(tag)` - returns moment curvature stress/strain history data of a node fiber.
-
-* tag: int
-  * node fiber ID. Use preview_section(show_tag=True) to see node fiber IDs
-* RETURNS:
-  * a dictionary of fiber data from moment curvature analysis
-
-```python
-# return rebar stress/strain history of node fiber 3
-rebar3_data = my_section.get_node_fiber_data(tag=3)
-
-# returns a dictionary with the following keys
-# "coord" - coordinate of node fiber
-# "depth" - depth of node fiber with respect to extreme compression fiber
-# "ecc" - distance from section centroid to node fiber
-# "stress" - stress history
-# "strain" - strain history
-# "force" - force contribution history 
-# "momentx" - moment about x-axis contribution 
-# "momenty" - moment about y-axis contribution 
-```
-
-
-
-`fkit.section.Section.get_patch_fiber_data(location)` - returns moment curvature stress/strain history data of a patch fiber.
-
-* location: float or string
-  * location can be "top", "bottom", or a coordinate list [x,y]
-  * if "top", data from top-most fiber will be reported (max y)
-  * if "bottom", data from bottom-most fiber will be reported (min y)
-  * if a user-specified coordinate, the program will find the nearest fiber
-* RETURNS:
-  * a dictionary of fiber data from moment curvature analysis
-
-```python
-# retrieve data of fiber closest to coordinate (23,14)
-fiber_data = my_section.get_patch_fiber_data(location=[23,14])
-```
-
-
-
-`fkit.section.Section.export_data(save_folder="exported_data_fkit")` - export data in csv format in a folder in current working directory. Three files will be generated "MK.csv", PM.csv", and "PM_factored.csv"
-
-* save_folder: string
-  * name of folder where csv file will be exported
-
-
-
-
-
 ## SectionBuilder
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/sectionbuilder.png?raw=true" alt="demo" style="width: 100%;" />
 </div>
 
+
+### rectangular()
+
+### rectangular_confined()
+
+### circular()
+
+### flanged()
+
+### wall()
+
+### wall_BE()
+
+### wall_layered()
+
+### wide_flange()
+
+### W_AISC()
+
+### W_AISC_composite()
 
 
 
@@ -788,80 +896,6 @@ fiber_data = my_section.get_patch_fiber_data(location=[23,14])
 
 
 
-
-
-## Visualization
-
-`fkit.plotter.preview_fiber(fiber, xlim=[-0.03, 0.03])` - show fiber stress-strain
-
-* fiber: fkit.nodefiber object or fkit.patchfiber object
-  * fiber object defined by user
-* xlim: [float, float] (OPTIONAL)
-  * lower and upper strain limit for plotting purposes
-  * default = [-0.03, 0.03]
-
-
-
-<div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/previewfiber.png?raw=true" alt="demo" style="width: 60%;" />
-</div>
-
-
-
-`fkit.plotter.preview_section(section, show_tag=False)` - show section geometry
-
-* section: fkit.section object
-  * section object defined by user
-* show_tag: boolean (OPTIONAL)
-  * show rebar ID or not
-  * default = False
-
-
-
-<div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/previewsection.png?raw=true" alt="demo" style="width: 30%;" />
-</div>
-
-
-
-
-
-`fkit.plotter.plot_MK(section)` - plot moment curvature analysis results
-
-* section: fkit.section object
-  * section object defined by user
-
-<div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/plotmk.png?raw=true" alt="demo" style="width: 60%;" />
-</div>
-
-
-
-`fkit.plotter.animate_MK(section)` -  generate a folder in current working directory containing pngs which can be converted to gif externally
-
-* section: fkit.section object
-  * section object defined by user
-
-<div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo.gif?raw=true" alt="demo" style="width: 60%;" />
-</div>
-
-
-`fkit.plotter.plot_PM(section, P=None, M=None)` - plot PM interaction surface
-
-* section: fkit.section object
-  * section object defined by user
-* P: [float] (OPTIONAL)
-  * list of axial demands for plotting
-  * default = None
-
-* M: [float] (OPTIONAL)
-  * list of moment demands for plotting (same length as P)
-  * default = None
-
-<div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/plot_PM.png?raw=true" alt="demo" style="width: 60%;" />
-</div>
 
 
 
