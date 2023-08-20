@@ -1066,7 +1066,7 @@ $$\sum F = 0$$
 
 $$\sum M = 0$$
 
-A moment curvature analysis involves incrementally increasing curvature (shown as $$\phi$$ in the above diagram; sometimes the Greek letter $\kappa$ is also often used). At each step, a depth of neutral axis is determined in order to satisfy equilibrium. The process is displacement-based and can be thought of as increasingly bending a beam further and further. The figure below illustrates this process.
+A moment curvature analysis involves incrementally increasing curvature (shown as $\phi$ in the above diagram; sometimes the Greek letter $\kappa$ is also often used). At each step, a depth of neutral axis is determined in order to satisfy equilibrium. The process is displacement-based and can be thought of as increasingly bending a beam further and further. The figure below illustrates this process.
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/momentcurvaturesteps.png?raw=true" alt="demo" style="width: 100%;" />
@@ -1078,8 +1078,8 @@ The moment curvature analysis algorithm is as follows:
 2. Slowly increment curvature from 0 to an user-specified target ($\phi_{target}$)
 3. At each curvature ($\phi$), use secant method to search for the depth of neutral axis that satisfies equilibrium. For a given neutral axis depth ($c$) and for each fiber i:
       * Calculate fiber depth with respect to top of section ($d_i$)
-      * Calculate fiber strain based on NA depth and curvature ($\varepsilon_i = \phi*(d_i - c)$)
-      * Calculate fiber stress based on fiber material properties ($\sigma_i =f(\varepsilon_i)$)
+      * Calculate fiber strain based on NA depth and curvature ($\epsilon_i = \phi*(d_i - c)$)
+      * Calculate fiber stress based on fiber material properties ($\sigma_i =f(\epsilon_i)$)
       * Calculate fiber force contribution ($F_i = \sigma_i A_i$)
         * ($A_i$) is fiber area
       * Calculate fiber moment contribution ($M_i = F_i e_i$)
@@ -1099,13 +1099,55 @@ The moment curvature analysis algorithm is as follows:
 
 ## APPENDIX: Theoretical Background P+M Interaction Surface
 
+P+M interaction curves can be derived in two ways:
+
+1. Conduct several moment-curvature analysis at varying **P** (from max tension to max compression), taking note of peak moment **M**. Note how we are only interested in a single point out of an entire moment-curvature curve. Alternatively,
+2. Set strain at extreme compression fiber to a limiting value (e.g. $\epsilon_{cu} = 0.003$), then increase depth of neutral axis from 0 to infinity. At each neutral axis depth, a new ultimate **(P, M)** point is derived
+
+The second method is computationally more efficient and is summarized graphically in the figure below.
+
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/PMinteractionsteps.png?raw=true" alt="demo" style="width: 100%;" />
 </div>
+<div align="center">
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/PMinteractionsteps2.png?raw=true" alt="demo" style="width: 70%;" />
+</div>
+
+fkit follows the design assumptions outlined in ACI 318-19. In particular:
+
+* concrete fiber material approximated with rectangular stress block
+* rebar fiber material approximated with elastic-perfect-plastic
+* rectangular stress block parameter: $\alpha = 0.85$
+* rectangular stress block parameter: $\beta= f(f'_c)$
+* ultimate crushing strain: $\epsilon_{cu} = 0.003$
+* concrete fibers does not take tension
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/PMinteractionsteps2.png?raw=true" alt="demo" style="width: 100%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/internalfbd.png?raw=true" alt="demo" style="width: 50%;" />
 </div>
+
+The PM interaction analysis algorithm is as follows:
+
+1. Section is discretized into patch fibers and node fibers
+2. Slowly increment neutral axis depth (c) from 0 to infinity. 
+   * c = 0 represents pure tension; c = inf represents pure compression
+3.  For a given neutral axis depth ($c$):
+   * Calculate curvature ($\phi = \frac{0.003}{c}$)
+   * Calculate fiber depth with respect to top of section ($d_i$)
+   * Calculate fiber strain based on NA depth and curvature ($\epsilon_i = \phi*(d_i - c)$)
+   * Calculate fiber stress based on the following condition:
+     * if fiber depth > neutral axis depth: ($\sigma = 0$)
+     * if fiber depth < neutral axis depth: ($\sigma = 0.85f'_c$)
+   * Calculate fiber force contribution ($F_i = \sigma_i A_i$)
+     * ($A_i$) is fiber area
+   * Calculate fiber moment contribution ($M_i = F_i e_i$)
+     * ($e_i$) is the distance between fiber centroid to section centroid
+     * ($e_{ix} = x_{fiber} - x_{section}$)
+     * ($e_{iy} = y_{fiber} - y_{section}$)
+   * Record ($P,M,c$) and move to next neutral axis depth
+
+
+
 
 
 ## APPENDIX: Validation Problem
