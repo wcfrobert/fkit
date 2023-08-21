@@ -161,7 +161,7 @@ Installation procedure:
 Note that pip install is available.
 
 ```
-pip install fkit
+pip install fiberkit
 ```
 
 

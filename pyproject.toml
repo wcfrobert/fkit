@@ -5,12 +5,12 @@ build-backend = "hatchling.build"
 
 
 [project]
-name = "fkit"
+name = "fiberkit"
 version = "1.0.0"
 authors = [
   { name="wcfrobert", email="wcfrobert@gmail.com" },
 ]
-description = "Fiber Kit - FIber Section Analysis in Python"
+description = "fkit- Fiber Section Analysis in Python"
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
