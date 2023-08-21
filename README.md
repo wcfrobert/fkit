@@ -95,8 +95,9 @@ fkit.plotter.plot_PM(section1)
 Three other sample scripts are provided to help get the users up and running:
 
 * `main_full.py` - illustrates all the major functionalities of fkit
-* `main_notebook.ipynb` - for users more accustomed to notebook environments
 * `main_fiber.py` - illustrates many of the material models within fkit
+* `main_sectionbuilder.py` - illustrates some of the common sections that can be created with sectionBuilder
+* `main_notebook.ipynb` - for users more accustomed to notebook environments
 
 The above example script uses US imperial unit **(kips, in, ksi)**. You may also use SI units **(N, mm, MPa)**. 
 

@@ -580,7 +580,7 @@ def W_AISC_composite(shape, slab_thickness, slab_width, slab_gap, slab_bar, cove
         slab_thickness      slab thickness
         slab_width          slab effective flange width
         cover               cover to centroid of slab bar
-        slab_gap            gap betweeen top of flange and bottom of slab (used for slab on deck)
+        slab_gap            gap between top of flange and bottom of slab (used for slab on deck)
         slab bar            [bar area, spacing, ny, s]. Set to None for no rebar
                                 example: [0.6, 12, 2, 3] = 0.6 area bars spaced at 12 in two layers with 3 spacing between layers
         

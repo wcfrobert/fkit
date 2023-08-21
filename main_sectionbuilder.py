@@ -10,8 +10,8 @@ from fkit.plotter import preview_section
 # define some fibers we will use later
 fiber_unconfined       = Todeschini(fpc=5, eo=0.002, emax=0.006, default_color="lightgray")
 fiber_confined         = Mander(fpc=6, eo=0.004, emax=0.014, default_color="gray")
-fiber_rebar            = Bilinear(fy=60, beta=0.01, emax=0.16, default_color="black")
-fiber_structural_steel = Multilinear(fy=50, fu=80, default_color="steelblue")
+fiber_rebar            = Bilinear(fy=60, fu=75, Es=29000, emax=0.16, default_color="black")
+fiber_structural_steel = Multilinear(fy=50, fu=80, Es=29000, default_color="steelblue")
 
 
 # rectangular
@@ -143,7 +143,6 @@ preview_section(section9)
 section10 = fkb.W_AISC(shape = "W27X307",
                         steel_fiber = fiber_structural_steel)
 preview_section(section10)
-
 
 
 

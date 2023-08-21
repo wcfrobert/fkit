@@ -38,7 +38,6 @@
   * [W_AISC_composite()](#w-aisc-composite--)
 - [APPENDIX: Theoretical Background Moment Curvature](#appendix--theoretical-background-moment-curvature)
 - [APPENDIX: Theoretical Background P+M Interaction Surface](#appendix--theoretical-background-p-m-interaction-surface)
-- [APPENDIX: Validation Problem](#appendix--validation-problem)
 
 
 
@@ -862,18 +861,47 @@ SectionBuilder functions are quite easy to create. Feel free to make a pull requ
 
 `fkit.sectionbuilder.rectangular(width, height, cover, top_bar, bot_bar, concrete_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
 
-* width
-* height
-* cover
-* top_bar
-* bot_bar
-* concrete_fiber
-* steel_fiber
-* mesh_nx
-* mesh_ny
+* width: float
+  * section width
+
+* height: float
+  * section height
+
+* cover: float
+  * cover to center of bar
+
+* top_bar: [float]
+  * bars in top layer [bar area, number across, layer, layer spacing]. Set to None for no rebar
+  * example: [0.6, 3, 1, 0] = 3 bars across in one layer with 0.6 in^2 area in top layer
+
+* bot_bar: [float]
+  * bars in bottom layer [bar area, number across, layer, layer spacing]. Set to None for no rebar
+  * example: [0.6, 4, 2, 3] = two rows of 4 bars (8 total) with 0.6 in^2 area separated by a vertical distance of 3 in
+
+* concrete_fiber: patchfiber object
+  * patch fiber object with material properties for concrete
+
+* steel_fiber: nodefiber object
+  * node fiber object with material properties for steel rebar
+
+* mesh_nx: float (OPTIONAL)
+  * mesh density in the x direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+
+* mesh_ny: float (OPTIONAL)
+  * mesh density in the y direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+
 
 ```python
 # rectangular section
+section1 = fkit.sectionbuilder.rectangular(width = 36,
+                                           height = 12,
+                                           cover = 1.5,
+                                           top_bar = [0.3, 6, 1, 0],
+                                           bot_bar = [0.3, 6, 1, 0],
+                                           concrete_fiber = fiber_unconfined,
+                                           steel_fiber = fiber_rebar)
 ```
 
 
@@ -882,16 +910,47 @@ SectionBuilder functions are quite easy to create. Feel free to make a pull requ
 
 `fkit.sectionbuilder.rectangular_confined(width, height, cover, top_bar, bot_bar, core_fiber, cover_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
 
-* width
-* height
-* cover
-* top_bar
-* bot_bar
-* core_fiber
-* cover_fiber
-* steel_fiber
-* mesh_nx
-* mesh_ny
+* width: float
+  * section width
+* height: float
+  * section height
+* cover: float
+  * cover to center of bar
+* top_bar: [float]
+  * bars in top layer [bar area, number across, layer, layer spacing]. Set to None for no rebar
+  * example: [0.6, 3, 1, 0] = 3 bars across in one layer with 0.6 in^2 area in top layer
+* bot_bar: [float]
+  * bars in bottom layer [bar area, number across, layer, layer spacing]. Set to None for no rebar
+  * example: [0.6, 4, 2, 3] = two rows of 4 bars (8 total) with 0.6 in^2 area separated by a vertical distance of 3 in
+* core_fiber: patchfiber object
+  * patch fiber object with material properties for concrete inner core
+
+* cover_fiber: patchfiber object
+  * patch fiber object with material properties for concrete outer cover
+
+* steel_fiber: nodefiber object
+  * node fiber object with material properties for steel rebar
+
+* mesh_nx: float (OPTIONAL)
+  * mesh density in the x direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+* mesh_ny: float (OPTIONAL)
+  * mesh density in the y direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+
+
+
+```python
+# rectangular section with a confined core
+section2 = fkit.sectionbuilder.rectangular_confined(width = 15, 
+                                    				height = 24, 
+                                    				cover = 1.5, 
+                                    				top_bar = [0.6, 3, 1, 0], 
+                                    				bot_bar = [0.6, 3, 2, 3], 
+                                    				core_fiber = fiber_confined, 
+                                    				cover_fiber = fiber_unconfined, 
+                                    				steel_fiber = fiber_rebar)
+```
 
 
 
@@ -899,15 +958,40 @@ SectionBuilder functions are quite easy to create. Feel free to make a pull requ
 
 `fkit.sectionbuilder.circular(diameter, cover, N_bar, A_bar, core_fiber, cover_fiber, steel_fiber, mesh_n=0.5)`
 
-* diameter
-* cover
-* N_bar
-* A_bar
-* core_fiber
-* cover_fiber
-* steel_fiber
-* mesh_nx
-* mesh_ny
+* diameter: float
+  * section diameter
+
+* cover: float
+  * cover to bar center
+
+* N_bar: int
+  * number of rebar along perimeter
+
+* A_bar: float
+  * rebar area
+
+* core_fiber: patchfiber object
+  * patch fiber object with material properties for concrete inner core
+* cover_fiber: patchfiber object
+  * patch fiber object with material properties for concrete outer cover
+* steel_fiber: nodefiber object
+  * node fiber object with material properties for steel rebar
+* mesh_n: float (OPTIONAL)
+  * mesh density (0 being least dense, 1 being most dense)
+  * default = 0.5
+
+
+
+```python
+# circular section
+section3 = fkit.sectionbuilder.circular(diameter = 36,
+                        				cover = 2,
+                        				N_bar = 6,
+                        				A_bar = 1.0,
+                        				core_fiber = fiber_confined, 
+                        				cover_fiber = fiber_unconfined, 
+                        				steel_fiber = fiber_rebar)
+```
 
 
 
@@ -915,19 +999,60 @@ SectionBuilder functions are quite easy to create. Feel free to make a pull requ
 
 `fkit.sectionbuilder.flanged(bw, bf, h, tf, cover, bot_bar, top_bar, slab_bar, core_fiber, cover_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
 
-* bw
-* bf
-* h
-* tf
-* cover
-* bot_bar
-* top_bar
-* slab_bar
-* core_fiber
-* cover_fiber
-* steel_fiber
-* mesh_nx
-* mesh_ny
+* bw: float
+  * beam web width
+
+* bf: float
+  * beam flange width
+
+* h: float
+  * total section height (beam + slab)
+
+* tf: float
+  * slab thickness
+
+* cover: float
+  * cover to bar center
+
+* top_bar: [float]
+  * bars in top layer [bar area, number across, layer, layer spacing]. Set to None for no rebar
+  * example: [0.6, 3, 1, 0] = 3 bars across in one layer with 0.6 in^2 area in top layer
+* bot_bar: [float]
+  * bars in bottom layer [bar area, number across, layer, layer spacing]. Set to None for no rebar
+  * example: [0.6, 4, 2, 3] = two rows of 4 bars (8 total) with 0.6 in^2 area separated by a vertical distance of 3 in
+* slab_bar: [float]
+  * bars in slab [bar area, spacing between bar, layers, spacing between layer]. Set to None for no rebar
+  * example: [0.6, 12, 2, 8] = two rows of bars separated by vertical spacing of 8 in. Bars are spaced at 12 in on center.
+
+* core_fiber: patchfiber object
+  * patch fiber object with material properties for concrete inner core
+* cover_fiber: patchfiber object
+  * patch fiber object with material properties for concrete outer cover
+* steel_fiber: nodefiber object
+  * node fiber object with material properties for steel rebar
+* mesh_nx: float (OPTIONAL)
+  * mesh density in the x direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+* mesh_ny: float (OPTIONAL)
+  * mesh density in the y direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+
+
+
+```python
+# beam with an effective flange forming a T
+section4 = fkit.sectionbuilder.flanged(bw = 24,
+                                       bf = 120,
+                        			   h = 48,
+                                       tf = 12,
+                                       cover = 2,
+                                       bot_bar = [0.6, 4, 1, 0],
+                                       top_bar = [0.6, 2, 1, 0],
+                                       slab_bar = [0.2, 12, 2, 9],
+                                       core_fiber = fiber_confined, 
+                                       cover_fiber = fiber_unconfined, 
+                                       steel_fiber = fiber_rebar)
+```
 
 
 
@@ -935,14 +1060,40 @@ SectionBuilder functions are quite easy to create. Feel free to make a pull requ
 
 `fkit.sectionbuilder.wall(width, length, cover, wall_bar, concrete_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
 
-* width
-* length
-* cover
-* wall_bar
-* concrete_fiber
-* steel_fiber
-* mesh_nx
-* mesh_ny
+* width: float
+  * wall thickness
+
+* length: float
+  * wall length
+
+* cover: float
+  * cover to bar center
+
+* wall_bar: [float]
+  * bars in wall [bar area, spacing between bar, layers]. Set to None for no rebar
+  * example: [0.6, 12, 2] = 0.6 area bars spaced at 12 inches in two layers
+* concrete_fiber: patchfiber object
+  * patch fiber object with material properties for concrete
+* steel_fiber: nodefiber object
+  * node fiber object with material properties for steel rebar
+* mesh_nx: float (OPTIONAL)
+  * mesh density in the x direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+* mesh_ny: float (OPTIONAL)
+  * mesh density in the y direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+
+
+
+```python
+# simple wall section without boundary elements
+section5 = fkit.sectionbuilder.wall(width=12,
+                    				length=120, 
+                    				cover=1.5, 
+                    				wall_bar=[0.31, 12, 2],
+                    				concrete_fiber = fiber_unconfined,
+                    				steel_fiber = fiber_rebar)
+```
 
 
 
@@ -950,17 +1101,50 @@ SectionBuilder functions are quite easy to create. Feel free to make a pull requ
 
 `fkit.sectionbuilder.wall_BE(width, length, cover, BE_length, wall_bar, BE_bar, concrete_fiber, BE_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
 
-* width
-* length
-* cover
-* BE_length
-* wall_bar
-* BE_bar
-* concrete_fiber
-* BE_fiber
-* steel_fiber
-* mesh_nx
-* mesh_ny
+* width: float
+  * wall thickness
+* length: float
+  * wall length
+* cover: float
+  * cover to bar center
+* BE_length: float
+  * length of boundary element
+
+* wall_bar: [float]
+  * bars in wall [bar area, spacing between bar, layers]. Set to None for no rebar
+  * example: [0.6, 12, 2] = 0.6 area bars spaced at 12 inches in two layers
+* BE_bar: [float]
+  * rebar within boundary element [bar_area, nx, ny]. Set to None for no BE rebar
+  * example: [0.6, 3, 4] = 0.6 in^2 area bars forming a rectangular array nx by ny within boundary element
+
+* concrete_fiber: patchfiber object
+  * patch fiber object with material properties for concrete wall
+* BE_fiber: patchfiber object
+  * patch fiber object with material properties for concrete boundary element confined
+
+* steel_fiber: nodefiber object
+  * node fiber object with material properties for steel rebar
+* mesh_nx: float (OPTIONAL)
+  * mesh density in the x direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+* mesh_ny: float (OPTIONAL)
+  * mesh density in the y direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+
+
+
+```python
+# wall section with boundary elements on either end
+section6 = fkit.sectionbuilder.wall_BE(width = 18, 
+                                       length = 160, 
+                                       cover = 2, 
+                                       BE_length = 24, 
+                                       wall_bar = [0.31, 6, 2], 
+                                       BE_bar = [1.0, 3, 4],
+                                       concrete_fiber = fiber_unconfined, 
+                                       BE_fiber = fiber_confined, 
+                                       steel_fiber = fiber_rebar)
+```
 
 
 
@@ -970,18 +1154,54 @@ SectionBuilder functions are quite easy to create. Feel free to make a pull requ
 
 `fkit.sectionbuilder.wall_layered(width1, width2, length, cover, wall_bar1, wall_bar2, concrete_fiber1, concrete_fiber2, steel_fiber1, steel_fiber2, mesh_nx=0.5, mesh_ny=0.5)`
 
-* width1
-* width2
-* length
-* cover
-* wall_bar1
-* wall_bar2
-* concrete_fiber1
-* concrete_fiber2
-* steel_fiber1
-* steel_fiber2
-* mesh_nx
-* mesh_ny
+* width1: float
+  * wall 1 thickness
+
+* width2: float
+  * wall 2 thickness
+
+* length:float
+  * wall length
+
+* cover: float
+  * cover to bar center
+
+* wall_bar1: [float]
+  * bars in wall 1 [bar area, spacing between bar, layers]. Set to None for no rebar
+  * example: [0.6, 12, 2] = 0.6 area bars spaced at 12 inches in two layers
+* wall_bar2: [float]
+  * bars in wall 2 [bar area, spacing between bar, layers]. Set to None for no rebar
+  * example: [0.6, 12, 2] = 0.6 area bars spaced at 12 inches in two layers
+* concrete_fiber1: patchfiber object
+  * patch fiber object with material properties for concrete in wall 1
+* concrete_fiber2: patchfiber object
+  * patch fiber object with material properties for concrete in wall 2
+* steel_fiber1: nodefiber object
+  * node fiber object with material properties for steel rebar in wall 1
+* steel_fiber2: nodefiber object
+  * node fiber object with material properties for steel rebar in wall 2
+* mesh_nx: float (OPTIONAL)
+  * mesh density in the x direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+* mesh_ny: float (OPTIONAL)
+  * mesh density in the y direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+
+
+
+```python
+# layered wall section (meant to model shotcrete retrofits)
+section7 = fkit.sectionbuilder.wall_layered(width1 = 6, 
+                                            width2 = 12, 
+                                            length = 120, 
+                                            cover = 1.5, 
+                                            wall_bar1 = [0.2, 12, 2], 
+                                            wall_bar2 = [0.6, 6, 2],
+                                            concrete_fiber1 = fiber_unconfined, 
+                                            concrete_fiber2 = fiber_confined, 
+                                            steel_fiber1 = fiber_rebar, 
+                                            steel_fiber2 = fiber_rebar)
+```
 
 
 
@@ -991,13 +1211,37 @@ SectionBuilder functions are quite easy to create. Feel free to make a pull requ
 
 `fkit.sectionbuilder.wall_speedcore(length, width, steel_thickness, concrete_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
 
-* length
-* width
-* steel_thickness
-* concrete_fiber
-* steel_fiber
-* mesh_nx
-* mesh_ny
+* length: float
+  * wall length
+
+* width: float
+  * wall thickness
+
+* steel_thickness: float
+  * thickness of structural steel plate encasing concrete wall
+
+* concrete_fiber: patchfiber object
+  * patch fiber object with material properties for concrete
+* steel_fiber: patchfiber object
+  * patch fiber object with material properties for structural steel plate
+* mesh_nx: float (OPTIONAL)
+  * mesh density in the x direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+* mesh_ny: float (OPTIONAL)
+  * mesh density in the y direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+
+
+
+```python
+# speedcore wall
+# also known as concrete-filled composite steel plate shear wall (CF-CPSW)
+section8 = fkit.sectionbuilder.wall_speedcore(length=120,
+                                              width=18, 
+                                              steel_thickness=1,
+                                              concrete_fiber=fiber_confined, 
+                                              steel_fiber=fiber_structural_steel)
+```
 
 
 
@@ -1005,13 +1249,37 @@ SectionBuilder functions are quite easy to create. Feel free to make a pull requ
 
 `fkit.sectionbuilder.wide_flange(bf, d, tw, tf, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
 
-* bf
-* d
-* tw
-* tf
-* steel_fiber
-* mesh_nx
-* mesh_ny
+* bf: float
+  * flange width
+
+* d: float
+  * depth
+
+* tw: float
+  * web thickness
+
+* tf: float
+  * flange thickness
+
+* steel_fiber: patchfiber object
+  * patch fiber object with material properties for structural steel
+* mesh_nx: float (OPTIONAL)
+  * mesh density in the x direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+* mesh_ny: float (OPTIONAL)
+  * mesh density in the y direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+
+
+
+```python
+# structural steel wide-flange section (W) (I beam)
+section9 = fkit.sectionbuilder.wide_flange(bf = 14,
+                                           d = 14,
+                                           tw = 1.0,
+                                           tf = 1.5,
+                                           steel_fiber = fiber_structural_steel)
+```
 
 
 
@@ -1019,10 +1287,25 @@ SectionBuilder functions are quite easy to create. Feel free to make a pull requ
 
 `fkit.sectionbuilder.W_AISC(shape, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
 
-* shape
-* steel_fiber
-* mesh_nx
-* mesh_ny
+* shape: string
+  * valid AISC shape designation (e.g. "W27x307")
+
+* steel_fiber: patchfiber object
+  * patch fiber object with material properties for structural steel
+* mesh_nx: float (OPTIONAL)
+  * mesh density in the x direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+* mesh_ny: float (OPTIONAL)
+  * mesh density in the y direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+
+
+
+```python
+# wide flange section within AISC steel manual (W27X307)
+section10 = fkit.sectionbuidler.W_AISC(shape = "W27X307",
+                                       steel_fiber = fiber_structural_steel)
+```
 
 
 
@@ -1030,25 +1313,52 @@ SectionBuilder functions are quite easy to create. Feel free to make a pull requ
 
 `fkit.sectionbuilder.W_AISC_composite(shape, slab_thickness, slab_width, slab_gap, slab_bar, cover, concrete_fiber,steel_fiber,rebar_fiber, mesh_nx=0.5, mesh_ny=0.5)`
 
-* shape
-* slab_thickness
-* slab_width
-* slab_gap
-* slab_bar
-* cover
-* concrete_fiber
-* steel_fiber
-* rebar_fiber
-* mesh_nx
-* mesh_ny
+* shape: string
+  * valid AISC shape designation (e.g. "W27x307")
+* slab_thickness: float
+  * thickness of topping slab
+
+* slab_width: float
+  * effective width of topping slab
+
+* slab_gap: float
+  * gap between top of flange and bottom of slab (used to model slab on deck)
+
+* slab_bar: [float]
+  * bars in slab [bar area, spacing between bar, layers, spacing between layer]. Set to None for no rebar
+  * example: [0.6, 12, 2, 8] = two rows of bars separated by vertical spacing of 8 in. Bars are spaced at 12 in on center.
+* cover: float
+  * cover to center of rebar
+
+* concrete_fiber: patchfiber object
+  * patch fiber object with material properties for concrete slab
+
+* steel_fiber: patchfiber object
+  * patch fiber object with material properties for structural steel
+* rebar_fiber: nodefiber object
+  * node fiber object with material properties for steel rebar
+
+* mesh_nx: float (OPTIONAL)
+  * mesh density in the x direction (0 being least dense, 1 being most dense)
+  * default = 0.5
+* mesh_ny: float (OPTIONAL)
+  * mesh density in the y direction (0 being least dense, 1 being most dense)
+  * default = 0.5
 
 
 
-
-
-
-
-
+```python
+# composite beam (EXPERIMENTAL). Assumes fully composite
+section11 = fkit.sectionbuilder.W_AISC_composite(shape="W18X71",
+                                                 slab_thickness = 3.25,
+                                                 slab_width = 76,
+                                                 slab_gap = 3,
+                                                 cover = 1,
+                                                 slab_bar = [0.2, 12, 1, 0],
+                                                 concrete_fiber = fiber_unconfined,
+                                                 rebar_fiber = fiber_rebar,
+                                                 steel_fiber = fiber_structural_steel)
+```
 
 
 
@@ -1101,8 +1411,8 @@ The moment curvature analysis algorithm is as follows:
 
 P+M interaction curves can be derived in two ways:
 
-1. Conduct several moment-curvature analysis at varying **P** (from max tension to max compression), taking note of peak moment **M**. Note how we are only interested in a single point out of an entire moment-curvature curve. Alternatively,
-2. Set strain at extreme compression fiber to a limiting value (e.g. $\epsilon_{cu} = 0.003$), then increase depth of neutral axis from 0 to infinity. At each neutral axis depth, a new ultimate **(P, M)** point is derived
+1. Conduct several moment-curvature analysis at varying level of applied axial load **P** (from max tension to max compression), taking note of peak moment **M**. Note how we are only interested in a single point out of an entire moment-curvature curve. 
+2. Alternatively, we can assume that the ultimate condition occurs where the extreme compression fiber is equal to a specific value (e.g. $\epsilon_{cu} = 0.003$), then increase depth of neutral axis from 0 to infinity. At each neutral axis depth, a new ultimate **(P, M)** point is derived
 
 The second method is computationally more efficient and is summarized graphically in the figure below.
 
@@ -1122,16 +1432,13 @@ fkit follows the design assumptions outlined in ACI 318-19. In particular:
 * ultimate crushing strain: $\epsilon_{cu} = 0.003$
 * concrete fibers does not take tension
 
-<div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/internalfbd.png?raw=true" alt="demo" style="width: 50%;" />
-</div>
 
 The PM interaction analysis algorithm is as follows:
 
 1. Section is discretized into patch fibers and node fibers
 2. Slowly increment neutral axis depth (c) from 0 to infinity. 
    * c = 0 represents pure tension; c = inf represents pure compression
-3.  For a given neutral axis depth ($c$):
+3. For a given neutral axis depth ($c$):
    * Calculate curvature ($\phi = \frac{0.003}{c}$)
    * Calculate fiber depth with respect to top of section ($d_i$)
    * Calculate fiber strain based on NA depth and curvature ($\epsilon_i = \phi*(d_i - c)$)
@@ -1145,14 +1452,6 @@ The PM interaction analysis algorithm is as follows:
      * ($e_{ix} = x_{fiber} - x_{section}$)
      * ($e_{iy} = y_{fiber} - y_{section}$)
    * Record ($P,M,c$) and move to next neutral axis depth
-
-
-
-
-
-## APPENDIX: Validation Problem
-
-
 
 
 
