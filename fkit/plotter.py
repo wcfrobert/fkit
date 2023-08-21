@@ -26,7 +26,7 @@ def preview_fiber(fiber,x_limit=[-0.03, 0.03]):
     axs.axhline(y=0, color = "black", linestyle="-", lw = 0.8)
     axs.axvline(x=0, color = "black", linestyle="-", lw = 0.8)
     plt.tight_layout()
-    return fig, strain_x, stress_y
+    return fig
 
 
 def compare_fibers(fibers, labels, x_limit):
