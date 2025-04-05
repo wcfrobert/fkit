@@ -23,7 +23,7 @@ Step 2: Define sections
 #########################################
 """
 # user may create sections manually
-section1 = fkit.section.Section()
+section1 = fkit.Section()
 
 section1.add_patch(xo=0, yo=0, b=18 ,h=18, nx=25, ny=25, fiber=fiber_unconfined)
 
