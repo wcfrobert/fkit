@@ -243,51 +243,60 @@ class Section:
         """
         # use root finding algorithm to find neutral axis depth
         self.axial = P
-        phi_list = np.linspace(phi_target/10000, phi_target, num=N_step)
-        step=0
-        x0=self.depth/2
+        phi_list = np.linspace(0, phi_target, num=N_step)
         
         time_start = time.time()
+        step = 0
+        x0 = self.depth/2
         for curvature in phi_list:
-            step +=1
-            
-            root = sp.root_scalar(self.verify_equilibrium, args=curvature, method="secant", x0=0, x1=x0+0.1)
-            correct_NA = root.root
-            # root = secant_method(self.verify_equilibrium, args=curvature, x0=x0, x1=x0+0.1)
-            # correct_NA = root
-            # if not root.converged:
-            #     print("\tstep {}: Could not converge...Ending moment curvature analysis at phi = {}".format(step,curvature))
-            #     print(root.flag)
-            #     self.curvature.append(curvature)
-            #     self.neutral_axis.append(0)
-            #     self.momentx.append(0)
-            #     self.momenty.append(0)
-            #     break
-            
-            sumMx = 0
-            sumMy = 0
-            for f in self.patch_fibers:
-                F,Mx,My = f.update(curvature,correct_NA,solution_found=True)
-                sumMx += Mx
-                sumMy += My
-            for f in self.node_fibers:
-                F,Mx,My = f.update(curvature,correct_NA,solution_found=True) 
-                sumMx += Mx
-                sumMy += My
-            
-            x0 = correct_NA
-            if show_progress:
-                print("\tstep {}: N.A found at {:.1f}. curvature = {:.1e}, M = {:.1f}".format(step,correct_NA,curvature,sumMx))
-            
-            self.curvature.append(curvature)
-            self.neutral_axis.append(correct_NA)
-            self.momentx.append(sumMx)
-            self.momenty.append(sumMy)
-            if step == 1:
+            if step == 0:
+                # cannot find root when curvature is 0 or close to 0.
+                self.curvature.append(0)
+                self.neutral_axis.append(0)
+                self.momentx.append(0)
+                self.momenty.append(0)
                 self.K_tangent.append(0)
             else:
-                slope = (self.momentx[-1] - self.momentx[-2])/(self.curvature[-1] - self.curvature[-2])
-                self.K_tangent.append(slope)
+                # root = sp.root_scalar(self.verify_equilibrium, args=curvature, method="secant", x0=0, x1=x0+0.1)
+                # correct_NA = root.root
+                # if not root.converged:
+                #     print("\tstep {}: Could not converge...Ending moment curvature analysis at phi = {}".format(step,curvature))
+                #     print(root.flag)
+                #     self.curvature.append(curvature)
+                #     self.neutral_axis.append(0)
+                #     self.momentx.append(0)
+                #     self.momenty.append(0)
+                #     break
+                root = secant_method(self.verify_equilibrium, args=curvature, x0=x0, x1=x0+0.1)
+                correct_NA = root
+                
+                sumMx = 0
+                sumMy = 0
+                for f in self.patch_fibers:
+                    F,Mx,My = f.update(curvature,correct_NA,solution_found=True)
+                    sumMx += Mx
+                    sumMy += My
+                for f in self.node_fibers:
+                    F,Mx,My = f.update(curvature,correct_NA,solution_found=True) 
+                    sumMx += Mx
+                    sumMy += My
+                
+                x0 = correct_NA
+                if show_progress:
+                    print("\tstep {}: N.A found at {:.1f}. curvature = {:.1e}, M = {:.1f}".format(step,correct_NA,curvature,sumMx))
+                
+                self.curvature.append(curvature)
+                self.neutral_axis.append(correct_NA)
+                self.momentx.append(sumMx)
+                self.momenty.append(sumMy)
+                if step == 1:
+                    self.K_tangent.append(0)
+                else:
+                    slope = (self.momentx[-1] - self.momentx[-2])/(self.curvature[-1] - self.curvature[-2])
+                    self.K_tangent.append(slope)
+                    
+            step +=1
+            
             
         time_end = time.time()
         self.MK_solved = True
@@ -694,7 +703,7 @@ def secant_method(func, args, x0, x1, tol=1e-4, max_iteration = 100):
         try:
             x_next = x1 - fx1 * (x1 - x0) / (fx1 - fx0)
         except ZeroDivisionError:
-            print("\tError: Division by zero occurred. The method failed.")
+            print("\tError: Division by zero. Secant method failed. Could not converge.")
             return None
 
         x0, x1 = x1, x_next
