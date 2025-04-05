@@ -30,7 +30,7 @@ Define fiber material properties, create section, perform moment-curvature and P
 
 ## Introduction
 
-fkit (fiber-kit) is a section analysis program implemented in Python. It is incredibly powerful, flexible, and easy-to-use. Perform **moment-curvature** and **P+M interaction** analysis with very few lines of code. Originally meant for reinforced concrete sections, it was later extended to all material type (e.g. wood, steel, FRPs, anything that can be defined by a stress-strain curve). 
+fkit (fiber-kit) is a section analysis program implemented in Python. It is powerful, flexible, and easy-to-use. Perform **moment-curvature** and **P+M interaction** analysis with very few lines of code. Originally meant for reinforced concrete sections, it was later extended to all material type (e.g. wood, steel, FRPs, anything that can be defined by a stress-strain curve). 
 
 Notable Features:
 
@@ -49,20 +49,9 @@ Notable Features:
 </div>
 
 
-**Disclaimer:** this package is meant for <u>personal or educational use only</u>. Fiber kit is a one-person passion project, not an enterprise-grade software.I did not allot much time for debugging or testing. fkit should not be used for commercial purpose of any kind!
-
-
-
-
 
 
 ## Quick Start
-
-**Installation**
-
-See "Installation" section below for more info. For casual users, use Anaconda Python, download this module, and run within Spyder IDE.
-
-**Quick Start Script**
 
 Run main_quickstart.py:
 
@@ -116,32 +105,26 @@ The above example script uses US imperial unit **(kips, in, ksi)**. You may also
 
 ## Installation
 
-**Option 1: Anaconda Python Distribution**
+**Option 1: Anaconda Python**
 
-For the casual users, using the base Anaconda Python environment is recommended. This is by far the easiest method of installation. Users don't need to worry about dependencies and setting up virtual environments. The following packages are used in this project:
+This is the simplest way to get started.
 
-* Numpy
-* Matplotlib
-* Scipy
-* Pandas
+1. Download latest version of Anaconda python distribution
+2. Download this package (click the green "Code" button and download zip file or download the latest release)
+3. Open and run "main.py" in Anaconda's Spyder IDE
 
-Installation procedure:
+**Option 2: Regular Python**
 
-1. Download Anaconda python
-2. Download this package (click the green "Code" button and download zip file)
-3. Open and run "main.py" in Anaconda's Spyder IDE. Make sure working directory is correctly configured.
-
-**Option 2: Vanilla Python**
-
-1. Download this project to a folder of your choosing
+1. Download python: [https://www.python.org/](https://www.python.org/)
+2. Download this project to a folder of your choosing
     ```
     git clone https://github.com/wcfrobert/fkit.git
     ```
-2. Change directory into where you downloaded fkit
+3. Change directory into where you downloaded fkit
     ```
     cd fkit
     ```
-3. Create virtual environment
+4. Create virtual environment
     ```
     py -m venv venv
     ```
@@ -149,11 +132,11 @@ Installation procedure:
     ```
     venv\Scripts\activate
     ```
-5. Install requirements
+6. Install requirements
     ```
     pip install -r requirements.txt
     ```
-6. run fkit
+7. run fkit
     ```
     py main.py
     ```
@@ -163,6 +146,13 @@ Note that pip install is available.
 ```
 pip install fiberkit
 ```
+
+Fiberkit was developed using python 3.12 (any version above 3.7 will probably work as well) with the following dependencies.
+
+* Numpy
+* Matplotlib
+* Scipy
+* Pandas
 
 
 
@@ -196,7 +186,7 @@ Step 2: Define sections
 #########################################
 """
 # user may create sections manually
-section1 = fkit.section.Section()
+section1 = fkit.Section()
 
 section1.add_patch(xo=0, yo=0, b=18 ,h=18, nx=25, ny=25, fiber=fiber_unconfined)
 
@@ -291,10 +281,10 @@ Here is a comprehensive list of all the commands that is available to the user.
 
 **Defining sections manually**
 
-* `fkit.section.add_patch()`
-* `fkit.section.add_bar_group()`
-* `fkit.section.add_bar()`
-* `fkit.section.mesh()`
+* `fkit.section.Section.add_patch()`
+* `fkit.section.Section.add_bar_group()`
+* `fkit.section.Section.add_bar()`
+* `fkit.section.Section.mesh()`
 
 
 
@@ -316,11 +306,11 @@ Here is a comprehensive list of all the commands that is available to the user.
 
 **Section analysis commands**
 
-* `fkit.section.run_moment_curvature()`
-* `fkit.section.run_PM_interaction()`
-* `fkit.section.get_node_fiber_data()`
-* `fkit.section.get_patch_fiber_data()`
-* `fkit.section.export_data()`
+* `fkit.section.Section.run_moment_curvature()`
+* `fkit.section.Section.run_PM_interaction()`
+* `fkit.section.Section.get_node_fiber_data()`
+* `fkit.section.Section.get_patch_fiber_data()`
+* `fkit.section.Section.export_data()`
 
 
 
@@ -362,10 +352,10 @@ fkit.patchfiber.Hognestad?
   * -ve is compressive stress/strain
 * Please ensure consistent unit input:
   * SI Unit: **(N, mm, MPa)**
-  * Freedom Unit: **(kips, in, ksi)**
-* Node fibers and patch fibers often overlap within the compression region. Consequently, some forces will be double counted. For most lightly reinforced sections, the change to the final result is insignificant and we simplify the problem without any appreciable loss in accuracy by just ignoring this overlap.
-* Currently, the PM interaction analysis routine is **for concrete sections only** and follows ACI 318-19 assumptions (e.g. rectangular stress block, elastic-perfect-plastic steel, spalling strain of 0.003, etc). Interaction surface is independent of user-specified material properties as all concrete fiber is converted to exhibit rectangular stress block behavior, and all rebar converted to elastic-perfect-plastic.
-* For asymmetric sections (including asymmetrically reinforced sections), some minor-axis moment may develop during moment curvature analysis. Minor-axis moment must develop in order to maintain equilibrium and to keep the neutral-axis in the same user-specified orientation. The orientation of neutral axis need not always be aligned with the applied moment vector.
+  * Imperial Unit: **(kips, in, ksi)**
+* MK analysis is code-agnostic. However, the PM interaction analysis routine is **for concrete sections only** and follows ACI 318-19 assumptions (e.g. rectangular stress block, elastic-perfect-plastic steel, spalling strain of 0.003, etc). Interaction surface is independent of user-specified material properties as all concrete fiber is converted to exhibit rectangular stress block behavior, and all rebar converted to elastic-perfect-plastic.
+* Disclaimer: this is not enterprise-grade software. Please do NOT use it for work. Users assume full risk and responsibility for verifying that the results are accurate.
+
 
 
 
