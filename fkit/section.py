@@ -329,6 +329,7 @@ class Section:
             
         Returns:
             A dictionary with the following keys
+                "fiber type" - fiber type
                 "coord" - coordinate of node fiber
                 "depth" - depth of node fiber with respect to extreme compression fiber
                 "ecc" - distance from section centroid to node fiber
@@ -345,6 +346,7 @@ class Section:
         momenty_history = [self.node_fibers[tag].ecc[0] * x for x in force_history]
         
         data_dict={
+            "fiber type":self.node_fibers[tag].name,
             "coord":self.node_fibers[tag].coord,
             "depth":self.node_fibers[tag].depth,
             "ecc":self.node_fibers[tag].ecc,

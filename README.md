@@ -299,7 +299,6 @@ Here is a comprehensive list of all the commands that is available to the user.
 * `fkit.sectionbuilder.wall_speedcore()`
 * `fkit.sectionbuilder.wide_flange()`
 * `fkit.sectionbuilder.W_AISC()`
-* `fkit.sectionbuilder.W_AISC_composite()`
 
 
 

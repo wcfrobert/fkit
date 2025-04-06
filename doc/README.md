@@ -1318,59 +1318,6 @@ section10 = fkit.sectionbuidler.W_AISC(shape = "W27X307",
 
 
 
-### W_AISC_composite()
-
-`fkit.sectionbuilder.W_AISC_composite(shape, slab_thickness, slab_width, slab_gap, slab_bar, cover, concrete_fiber,steel_fiber,rebar_fiber, mesh_nx=0.5, mesh_ny=0.5)` returns a fully constructed `fkit.Section()` object.
-
-* shape: string
-  * valid AISC shape designation (e.g. "W27x307")
-* slab_thickness: float
-  * thickness of topping slab
-
-* slab_width: float
-  * effective width of topping slab
-
-* slab_gap: float
-  * gap between top of flange and bottom of slab (used to model slab on deck)
-
-* slab_bar: [float]
-  * bars in slab [bar area, spacing between bar, layers, spacing between layer]. Set to None for no rebar
-  * example: [0.6, 12, 2, 8] = two rows of bars separated by vertical spacing of 8 in. Bars are spaced at 12 in on center.
-* cover: float
-  * cover to center of rebar
-
-* concrete_fiber: patchfiber object
-  * patch fiber object with material properties for concrete slab
-
-* steel_fiber: patchfiber object
-  * patch fiber object with material properties for structural steel
-* rebar_fiber: nodefiber object
-  * node fiber object with material properties for steel rebar
-
-* mesh_nx: float (OPTIONAL)
-  * mesh density in the x direction (0 being least dense, 1 being most dense)
-  * default = 0.5
-* mesh_ny: float (OPTIONAL)
-  * mesh density in the y direction (0 being least dense, 1 being most dense)
-  * default = 0.5
-
-
-
-```python
-# composite beam (EXPERIMENTAL). Assumes fully composite
-section11 = fkit.sectionbuilder.W_AISC_composite(shape="W18X71",
-                                                 slab_thickness = 3.25,
-                                                 slab_width = 76,
-                                                 slab_gap = 3,
-                                                 cover = 1,
-                                                 slab_bar = [0.2, 12, 1, 0],
-                                                 concrete_fiber = fiber_unconfined,
-                                                 rebar_fiber = fiber_rebar,
-                                                 steel_fiber = fiber_structural_steel)
-```
-
-
-
 
 
 ## APPENDIX: Theoretical Background Moment Curvature
