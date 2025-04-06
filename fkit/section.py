@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import math
-import scipy.optimize as sp
 import itertools
 import os
 import copy
@@ -257,16 +256,6 @@ class Section:
                 self.momenty.append(0)
                 self.K_tangent.append(0)
             else:
-                # root = sp.root_scalar(self.verify_equilibrium, args=curvature, method="secant", x0=0, x1=x0+0.1)
-                # correct_NA = root.root
-                # if not root.converged:
-                #     print("\tstep {}: Could not converge...Ending moment curvature analysis at phi = {}".format(step,curvature))
-                #     print(root.flag)
-                #     self.curvature.append(curvature)
-                #     self.neutral_axis.append(0)
-                #     self.momentx.append(0)
-                #     self.momenty.append(0)
-                #     break
                 root = secant_method(self.verify_equilibrium, args=curvature, x0=x0, x1=x0+0.1)
                 correct_NA = root
                 
@@ -687,7 +676,7 @@ class Section:
 
 
 def secant_method(func, args, x0, x1, tol=1e-4, max_iteration = 100):
-    """secant method for root finding. Ended up not using because scipy is slightly faster"""
+    """secant method for root finding"""
     # edge case for when curvature = 0
     if args == 0:  
         return x0

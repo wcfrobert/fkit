@@ -151,7 +151,6 @@ Fiberkit was developed using python 3.12 (any version above 3.7 will probably wo
 
 * Numpy
 * Matplotlib
-* Scipy
 * Pandas
 
 
