@@ -22,6 +22,7 @@ class BasePatchFiber:
         vertices            list of [x,y] coordinates of the fiber's vertices [[],[],...]
                                 - First and last coordinate must overlap (i.e. [xo,yo] = [xn,yn])
                                 - Vertices must be consecutive and ordered counter-clockwise along perimeter.
+                                - Defaults to [[0,0],[1,0],[1,1],[0,1],[0,0]] during fiber definition stage. Reassigned when section is defined.
                                 
         default_color       original patch color for visualization
         

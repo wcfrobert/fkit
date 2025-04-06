@@ -336,8 +336,8 @@ fiber_data = my_section.get_patch_fiber_data(location=[23.4, 14.2])
 
 Two types of fibers are available. The difference between patch fibers and node fibers are as follows:
 
-* **Patch fibers** are mainly used for concrete (but not always). A patch fiber has 4 vertices and occupies some area geometrically.
-* **Node fibers** are always used for rebar. A node fiber is defined by a centroidal coordinate (a single point) and does not have an area. Instead, the user must specify its area.
+* **Patch** fibers are mainly used for concrete (but not always). A patch fiber has 4 vertices and occupies some area geometrically.
+* **Node** fibers are always used for rebar. A node fiber is defined by a centroidal coordinate (a single point) and does not have an area. Instead, the user must specify its area.
 
 There are currently 7 material models available in fkit.
 
@@ -367,8 +367,7 @@ Note that all input arguments are positive (+)
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/hognestad.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
-
-`fkit.patchfiber.Hognestad(fpc, Ec="default", eo="default", emax=0.0038, alpha=0, take_tension=False, fr="default", er="default", default_color="lightgray", vertices=None)` 
+`fkit.patchfiber.Hognestad(fpc, Ec="default", eo="default", emax=0.0038, alpha=0, take_tension=False, fr="default", er="default", default_color="lightgray")` 
 
 * fpc: float
   * Concrete cylinder strength. Peak stress will occur at 0.9fpc
@@ -424,8 +423,7 @@ confined = fkit.patchfiber.Hognestad(fpc=6, eo=0.004, emax=0.014)
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/todeschini.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
-
-`fkit.patchfiber.Todeschini(fpc, Ec="default", eo="default", emax=0.0038, alpha=0, take_tension=False, fr="default", er="default", default_color="lightgray", vertices=None)` 
+`fkit.patchfiber.Todeschini(fpc, Ec="default", eo="default", emax=0.0038, alpha=0, take_tension=False, fr="default", er="default", default_color="lightgray")` 
 
 * fpc: float
   * Concrete cylinder strength. Peak stress will occur at 0.9fpc
@@ -477,8 +475,7 @@ unconfined = fkit.patchfiber.Todeschini(fpc=5)
 </div>
 
 
-
-`fkit.patchfiber.Mander(fpc, eo, emax, Ec="default", alpha=0, take_tension=False, fr="default", er="default", default_color="lightgray", vertices=None)` 
+`fkit.patchfiber.Mander(fpc, eo, emax, Ec="default", alpha=0, take_tension=False, fr="default", er="default", default_color="lightgray")` 
 
 * fpc: float
   * Concrete cylinder strength (peak stress = fo = fpc)
@@ -535,8 +532,7 @@ confined = fkit.patchfiber.Mander(fpc=6, eo=0.004, emax=0.014)
 </div>
 
 
-
-`fkit.nodefiber.Bilinear(fy, fu, Es, ey="default", emax=0.1, default_color="black", coord=None, area=None)`
+`fkit.nodefiber.Bilinear(fy, fu, Es, ey="default", emax=0.1, default_color="black")`
 
 * fy: float
   * Yield stress
@@ -586,8 +582,7 @@ patch = fkit.patchfiber.Bilinear(fy=50, fu=65, Es=29000)
 </div>
 
 
-
-`fkit.nodefiber.Multilinear(fy, fu, Es, ey1="default", ey2=0.008, stress1=0.83, stress2=0.98, stress3=1.00, stress4=0.84, strain1=0.03, strain2=0.07, strain3=0.10, strain4=0.16, default_color="black", coord=None, area=None)`
+`fkit.nodefiber.Multilinear(fy, fu, Es, ey1="default", ey2=0.008, stress1=0.83, stress2=0.98, stress3=1.00, stress4=0.84, strain1=0.03, strain2=0.07, strain3=0.10, strain4=0.16, default_color="black")`
 
 * fy: float
   * Yield stress
@@ -678,8 +673,7 @@ fiber2 = fkit.patchfiber.Bilinear(fy=50, fu=65, Es=29000,
 </div>
 
 
-
-`fkit.nodefiber.Custom_Trilinear(strain1p, strain2p, strain3p, stress1p, stress2p, stress3p, strain1n="default", strain2n="default", strain3n="default", stress1n="default", stress2n="default", stress3n="default", default_color="black", coord=None, area=None)`
+`fkit.nodefiber.Custom_Trilinear(strain1p, strain2p, strain3p, stress1p, stress2p, stress3p, strain1n="default", strain2n="default", strain3n="default", stress1n="default", stress2n="default", stress3n="default", default_color="black")`
 
 * strain1p: float
 
@@ -771,8 +765,7 @@ patch = fkit.patchfiber.Custom_Trilinear(stress1p=75, strain1p=0.002,
 </div>
 
 
-
-`fkit.nodefiber.RambergOsgood(fy, Es, n, emax=0.16, default_color="black", coord=None, area=None)`
+`fkit.nodefiber.RambergOsgood(fy, Es, n, emax=0.16, default_color="black")`
 
 * fy: float
 
@@ -816,8 +809,7 @@ patch = fkit.patchfiber.RambergOsgood(fy=60, Es=29000, n=25)
 </div>
 
 
-
-`fkit.nodefiber.MenegottoPinto(fy, Es, b, n, emax=0.16, default_color="black", coord=None, area=None)`
+`fkit.nodefiber.MenegottoPinto(fy, Es, b, n, emax=0.16, default_color="black")`
 
 * fy: float
 

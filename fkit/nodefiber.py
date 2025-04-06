@@ -15,9 +15,9 @@ Currently available:
 class BaseNodeFiber:
     """
     Parent Node fiber:
-        coord               coordinate of node fiber [x,y]
+        coord               coordinate of node fiber [x,y]. Defaults to [0,0] during fiber definition stage. Reassigned when section is defined.
         
-        area                fiber area
+        area                fiber area. Defaults to 1.0 during fiber definition stage. Reassigned when section is defined.
         
         default_color       original color for visualization
         

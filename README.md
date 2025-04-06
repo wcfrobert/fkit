@@ -109,7 +109,7 @@ The above example script uses US imperial unit **(kips, in, ksi)**. You may also
 
 This is the simplest way to get started.
 
-1. Download latest version of Anaconda python distribution
+1. Download Anaconda python distribution: [https://www.anaconda.com/download](https://www.anaconda.com/download)
 2. Download this package (click the green "Code" button and download zip file or download the latest release)
 3. Open and run "main.py" in Anaconda's Spyder IDE
 
@@ -258,67 +258,68 @@ section2.export_data()
 
 
 
-Here is a comprehensive list of all the commands that is available to the user. 
+Here is a comprehensive list of all public methods available to the user. 
 
-**Defining material properties**
+**Defining material properties**: [More Info](https://github.com/wcfrobert/fkit/tree/master/doc#fiber-material-models)
 
-* `fkit.patchfiber.Hognestad()`
-* `fkit.patchfiber.Todeschini()`
-* `fkit.patchfiber.Mander()`
-* `fkit.patchfiber.Bilinear()`
-* `fkit.patchfiber.Multilinear()`
-* `fkit.patchfiber.RambergOsgood()`
-* `fkit.patchfiber.MenegottoPinto()`
-* `fkit.patchfiber.Custom_Trilinear()`
-* `fkit.nodefiber.Bilinear()`
-* `fkit.nodefiber.Multilinear()`
-* `fkit.nodefiber.RambergOsgood()`
-* `fkit.nodefiber.MenegottoPinto()`
-* `fkit.nodefiber.Custom_Trilinear()`
-
-
-
-**Defining sections manually**
-
-* `fkit.section.Section.add_patch()`
-* `fkit.section.Section.add_bar_group()`
-* `fkit.section.Section.add_bar()`
-* `fkit.section.Section.mesh()`
+* `fkit.patchfiber.Hognestad(fpc, Ec="default", eo="default", emax=0.0038, alpha=0, take_tension=False, fr="default", er="default", default_color="lightgray")`
+* `fkit.patchfiber.Todeschini(fpc, Ec="default", eo="default", emax=0.0038, alpha=0, take_tension=False, fr="default", er="default", default_color="lightgray")`
+* `fkit.patchfiber.Mander(fpc, eo, emax, Ec="default", alpha=0, take_tension=False, fr="default", er="default", default_color="lightgray")`
+* `fkit.patchfiber.Bilinear(fy, fu, Es, ey="default", emax=0.1, default_color="black")`
+* `fkit.patchfiber.Multilinear(fy, fu, Es, ey1="default", ey2=0.008, stress1=0.83, stress2=0.98, stress3=1.00, stress4=0.84, strain1=0.03, strain2=0.07, strain3=0.10, strain4=0.16, default_color="black")`
+* `fkit.patchfiber.RambergOsgood(fy, Es, n, emax=0.16, default_color="black")`
+* `fkit.patchfiber.MenegottoPinto(fy, Es, b, n, emax=0.16, default_color="black")`
+* `fkit.patchfiber.Custom_Trilinear(strain1p, strain2p, strain3p, stress1p, stress2p, stress3p, strain1n="default", strain2n="default", strain3n="default", stress1n="default", stress2n="default", stress3n="default", default_color="black")`
+* ~
+* `fkit.nodefiber.Bilinear(fy, fu, Es, ey="default", emax=0.1, default_color="black")`
+* `fkit.nodefiber.Multilinear(fy, fu, Es, ey1="default", ey2=0.008, stress1=0.83, stress2=0.98, stress3=1.00, stress4=0.84, strain1=0.03, strain2=0.07, strain3=0.10, strain4=0.16, default_color="black")`
+* `fkit.nodefiber.RambergOsgood(fy, Es, n, emax=0.16, default_color="black")`
+* `fkit.nodefiber.MenegottoPinto(fy, Es, b, n, emax=0.16, default_color="black")`
+* `fkit.nodefiber.Custom_Trilinear(strain1p, strain2p, strain3p, stress1p, stress2p, stress3p, strain1n="default", strain2n="default", strain3n="default", stress1n="default", stress2n="default", stress3n="default", default_color="black")`
 
 
 
-**Defining sections with SectionBuilder**
+**Defining sections manually**: [More Info](https://github.com/wcfrobert/fkit/tree/master/doc#manual-section-creation)
 
-* `fkit.sectionbuilder.rectangular()`
-* `fkit.sectionbuilder.rectangular_confined()`
-* `fkit.sectionbuilder.circular()`
-* `fkit.sectionbuilder.flanged()`
-* `fkit.sectionbuilder.wall()`
-* `fkit.sectionbuilder.wall_BE()`
-* `fkit.sectionbuilder.wall_layered()`
-* `fkit.sectionbuilder.wall_speedcore()`
-* `fkit.sectionbuilder.wide_flange()`
-* `fkit.sectionbuilder.W_AISC()`
+* `fkit.section.Section.add_patch(xo, yo, b, h, nx, ny, fiber)`
+* `fkit.section.Section.add_bar_group(xo, yo, b, h, nx, ny, area, perimeter_only, fiber)`
+* `fkit.section.Section.add_bar(coord, area, fiber)`
+* `fkit.section.Section.mesh(rotate=0)`
 
 
 
-**Section analysis commands**
+**Defining sections with SectionBuilder**: [More Info](https://github.com/wcfrobert/fkit/tree/master/doc#sectionbuilder)
 
-* `fkit.section.Section.run_moment_curvature()`
-* `fkit.section.Section.run_PM_interaction()`
-* `fkit.section.Section.get_node_fiber_data()`
-* `fkit.section.Section.get_patch_fiber_data()`
-* `fkit.section.Section.export_data()`
+* `fkit.sectionbuilder.rectangular(width, height, cover, top_bar, bot_bar, concrete_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
+* `fkit.sectionbuilder.rectangular_confined(width, height, cover, top_bar, bot_bar, core_fiber, cover_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
+* `fkit.sectionbuilder.circular(diameter, cover, N_bar, A_bar, core_fiber, cover_fiber, steel_fiber, mesh_n=0.5)`
+* `fkit.sectionbuilder.flanged(bw, bf, h, tf, cover, bot_bar, top_bar, slab_bar, core_fiber, cover_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
+* `fkit.sectionbuilder.wall(width, length, cover, wall_bar, concrete_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
+* `fkit.sectionbuilder.wall_BE(width, length, cover, BE_length, wall_bar, BE_bar, concrete_fiber, BE_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
+* `fkit.sectionbuilder.wall_layered(width1, width2, length, cover, wall_bar1, wall_bar2, concrete_fiber1, concrete_fiber2, steel_fiber1, steel_fiber2, mesh_nx=0.5, mesh_ny=0.5)`
+* `fkit.sectionbuilder.wall_speedcore(length, width, steel_thickness, concrete_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
+* `fkit.sectionbuilder.wide_flange(bf, d, tw, tf, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
+* `fkit.sectionbuilder.W_AISC(shape, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
 
 
 
-**Visualization**
+**Section analysis commands**: [More Info](https://github.com/wcfrobert/fkit/tree/master/doc#moment-curvature-analysis)
 
-* `fkit.plotter.preview_fiber()`
-* `fkit.plotter.preview_section()`
-* `fkit.plotter.plot_MK()`
-* `fkit.plotter.animate_MK()`
-* `fkit.plotter.plot_PM()`
+* `fkit.section.Section.run_moment_curvature(phi_target, P=0, N_step=100, show_progress=False)`
+* `fkit.section.Section.run_PM_interaction(fpc, fy, Es)`
+* `fkit.section.Section.get_node_fiber_data(tag)`
+* `fkit.section.Section.get_patch_fiber_data(location)`
+* `fkit.section.Section.export_data(save_folder="exported_data_fkit")`
+
+
+
+**Visualization**: [More Info](https://github.com/wcfrobert/fkit/tree/master/doc#visualization)
+
+* `fkit.plotter.preview_fiber(fiber, xlim=[-0.03, 0.03])`
+* `fkit.plotter.preview_section(section, show_tag=False)`
+* `fkit.plotter.plot_MK(section)`
+* `fkit.plotter.animate_MK(section)`
+* `fkit.plotter.plot_PM(section, P=None, M=None)`
 
 
 
