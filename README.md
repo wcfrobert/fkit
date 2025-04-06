@@ -258,6 +258,23 @@ section2.export_data()
 
 
 
+## Documentation
+
+[Link to Documentation](https://github.com/wcfrobert/fkit/tree/master/doc)
+
+
+In addition to the documentation, the user may access docstrings of any methods using the `help()` keyword in python:
+
+```python
+help(fkit.patchfiber.Hognestad)
+fkit.patchfiber.Hognestad?
+```
+
+<div align="center">
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/helpcommand.png?raw=true" alt="demo" style="width: 90%;" />
+</div>
+
+
 Here is a comprehensive list of all public methods available to the user. 
 
 **Defining material properties**: [More Info](https://github.com/wcfrobert/fkit/tree/master/doc#fiber-material-models)
@@ -323,19 +340,6 @@ Here is a comprehensive list of all public methods available to the user.
 
 
 
-In addition to the documentation provided in the `\doc` folder, the user may easily access docstrings of any methods:
-
-```python
-help(fkit.patchfiber.Hognestad)
-fkit.patchfiber.Hognestad?
-```
-
-<div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/helpcommand.png?raw=true" alt="demo" style="width: 90%;" />
-</div>
-
-
-
 
 
 ## Notes and Assumptions
@@ -352,13 +356,10 @@ fkit.patchfiber.Hognestad?
 * Please ensure consistent unit input:
   * SI Unit: **(N, mm, MPa)**
   * Imperial Unit: **(kips, in, ksi)**
-* MK analysis is code-agnostic. However, the PM interaction analysis routine is **for concrete sections only** and follows ACI 318-19 assumptions (e.g. rectangular stress block, elastic-perfect-plastic steel, spalling strain of 0.003, etc). Interaction surface is independent of user-specified material properties as all concrete fiber is converted to exhibit rectangular stress block behavior, and all rebar converted to elastic-perfect-plastic.
+* Moment curvature analysis is code-agnostic. On the other hand, the PM interaction analysis is **for reinforced concrete sections only** and follows ACI 318-19 assumptions (e.g. rectangular stress block, elastic-perfect-plastic steel, spalling strain of 0.003, etc). Solution is independent of user-specified fiber materials as all concrete fibesr are converted to exhibit rectangular stress block behavior, and all rebar fibers are converted to elastic-perfect-plastic behavior.
 * Disclaimer: this is not enterprise-grade software. Please do NOT use it for work. Users assume full risk and responsibility for verifying that the results are accurate.
 
 
-
-
-**Refer to the README in `\doc` folder for detailed documentation along with theoretical background.** 
 
 
 ## License

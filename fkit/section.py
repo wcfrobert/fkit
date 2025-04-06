@@ -7,66 +7,68 @@ import copy
 import time
 
 
-
 class Section:
     """
-    Section object definition:
-        patch_fibers                list of patch fiber objects in section (usually concrete fibers)
-        node_fibers                 list of node fiber objects in section (usually rebar)
-        N_bar                       number of node fibers in section
-        N_fiber                     number of patch fibers in section
-        area                        total area of all patch fibers
-        centroid                    geometric centroid of section
-        ymax                        max y coordinate of any fiber (used to determine fiber depth)
-        depth                       total depth of section (dimension in y)
-        
-        MK_solved                   boolean to see if moment curvature analysis has been conducted
-        PM_solved                   boolean to see if PM interaction analysis has been conducted
-        folder_created              boolean to see if export folder has already been created
-        output_dir                  path where export data will be stored   
-        
-    From moment curvature analysis
-        curvature                   list of curvature
-        neutral_axis                list of neutral axis depth
-        momentx                     list of major-axis moment
-        momenty                     list of minor-axis moment (should be 0 for symmetric section)
-        K_tangent                   list of moment-curvature tangent slope
-        axial                       user-specified axial force for moment-curvature analysis
-        
-    From interaction surface analysis
-        PM_surface                  key = orientation (0 to 360) 
-                                    value = [[P], [Mx], [NA_depth], [My], [resistance_factor], [phi_P], [phi_Mx], [phi_My]]
-    Result tables
-        table_MK                    dataframe containing all moment curvature analysis results
-        table_PM                    dataframe containing all PM interaction analysis results
+    Fiber kit Section object definition.
+    
+    Args:
+        None
+    
+    Public Methods:
+        Section.add_bar()
+        Section.add_bar_group()
+        Section.add_patch()
+        Section.mesh()
+        Section.run_moment_curvature()
+        Section.run_Icr_analysis()
+        Section.run_PM_interaction()
+        Section.export_data()
     """
     def __init__(self):
-        self.patch_fibers = []
-        self.node_fibers = []
-        self.N_bar = 0
-        self.N_fiber = 0
-        self.area = None
-        self.centroid = None
-        self.ymax = None
-        self.depth = None
+        # fiber section object paramters
+        self.patch_fibers = []              # list of patch fiber objects in section (usually concrete fibers)
+        self.node_fibers = []               # list of node fiber objects in section (usually rebar)
+        self.N_bar = 0                      # total number of node fibers in section
+        self.N_fiber = 0                    # total number of patch fibers in section
+        self.area = None                    # total area of all patch fibers
+        self.centroid = None                # geometric centroid of section
+        self.ymax = None                    # max y coordinate of any fiber (used to determine fiber depth)
+        self.depth = None                   # total depth of section (dimension in y)
         
-        self.curvature = []
-        self.neutral_axis = []
-        self.momentx = []
-        self.momenty = []
-        self.K_tangent = []
-        self.axial = 0
-        self.PM_surface = {}
-        self.table_MK = None
-        self.table_PM = None
+        # moment curvature parameters
+        self.curvature = []                 # list of curvature at each load step
+        self.neutral_axis = []              # list of neutral axis depth at each load step
+        self.momentx = []                   # list of major-axis moment at each load step
+        self.momenty = []                   # list of minor-axis moment at each load step (0 for symmetric sections)
+        self.K_tangent = []                 # list of moment-curvature tangent slope at each load step
+        self.axial = 0                      # user-specified axial force for moment-curvature analysis
+        self.table_MK = None                # dataframe containing all moment curvature analysis results
         
-        self.MK_solved = False
-        self.PM_solved = False
-        self.folder_created = False
-        self.output_dir = None
+        # PM interaction surface parameters
+        self.PM_surface = {}                # dictionary of PM interaction surface points
+                                                # key = degrees from 0 to 360 (right now only 0 and 180), 
+                                                # value = [[P], [Mx], [NA_depth], [My], [resistance_factor], [phi_P], [phi_Mx], [phi_My]]
+        self.table_PM = None                # dataframe containing all PM interaction analysis results
+        
+        # other parameters
+        self.MK_solved = False              # boolean to see if moment curvature analysis has been conducted
+        self.PM_solved = False              # boolean to see if PM interaction analysis has been conducted
+        self.folder_created = False         # boolean to see if export folder has already been created
+        self.output_dir = None              # path where export data will be stored   
+    
     
     def add_bar(self, coord, area, fiber):
-        """add a single rebar at specified location"""
+        """
+        Add a single rebar at specified location.
+        
+        Args:
+            coord       (float):: coordinate of node fiber (x, y)
+            area        float:: area of node fiber
+            fiber       NodeFiber:: fiberkit node fiber object
+            
+        Return:
+            None
+        """
         copied_fiber = copy.deepcopy(fiber)
         copied_fiber.coord = coord
         copied_fiber.area = area
@@ -77,16 +79,21 @@ class Section:
     
     def add_bar_group(self, xo, yo, b, h, nx, ny, area, perimeter_only, fiber):
         """
-        Add a retangular array of rebar
-            xo                  x coordinate of bottom left corner
-            yo                  y coordinate of bottom left corner
-            b                   width of rebar group
-            h                   height of rebar group
-            nx                  number of rebar in x
-            ny                  number of rebar in y
-            area                cross sectional area of rebar
-            perimeter_only      True or False. Have rebar on perimeter only or fill full array
-            fiber               node fiber object with material properties
+        Add a retangular array of rebar.
+        
+        Args:
+            xo                  float:: x coordinate of bottom left corner
+            yo                  float:: y coordinate of bottom left corner
+            b                   float:: width of rebar array
+            h                   float:: height of rebar array
+            nx                  int:: number of rebar in x
+            ny                  int:: number of rebar in y
+            area                float:: cross sectional area of rebar
+            perimeter_only      bool:: True or False. Have rebar on perimeter only or fill full array
+            fiber               NodeFiber:: fiber kit NodeFiber object
+            
+        Return:
+            None
         """
         # determine spacing
         sx = 0 if nx==1 else b / (nx-1)
@@ -120,14 +127,19 @@ class Section:
     
     def add_patch(self, xo, yo, b, h, nx, ny, fiber):
         """
-        Add patch fibers to a rectangular area
-            xo      x coordinate of lower left corner
-            yo      y coordinate of lower left corner
-            b       width
-            h       height
-            nx      density of mesh along width
-            ny      density of mesh along height
-            fiber   patch fiber object with material properties
+        Add patch fibers to a specified area.
+        
+        Args:
+            xo          float:: x coordinate of lower left corner
+            yo          float:: y coordinate of lower left corner
+            b           float:: width
+            h           float:: height
+            nx          int:: number of fibers along width
+            ny          int:: number of fibers along height
+            fiber       PatchFiber:: fiberkit PatchFiber object
+            
+        Return:
+            None
         """
         # generate patch vertices
         patch_vertices = []
@@ -148,16 +160,23 @@ class Section:
             copied_fiber = copy.deepcopy(fiber)
             copied_fiber.vertices = vertices
             copied_fiber.tag = self.N_fiber
-            copied_fiber.find_geometric_properties()
+            try:
+                copied_fiber.find_geometric_properties()
+            except:
+                raise RuntimeError("ERROR: A node fiber has been assigned to an area. Please redefine with patch fiber.")
             self.patch_fibers.append(copied_fiber)
             self.N_fiber += 1
         
     
     def mesh(self, rotate=0):
         """
-        Calculates section properties and updates fiber locations.
-            rotate      rotates the section by an angle counter clockwise (in degrees)
-                            OPTIONAL: default = 0 degrees
+        Finalize section definition. Calculate section properties and updates fiber locations with respect to section.
+        
+        Args:
+            rotate       (OPTIONAL) float:: rotates the section by an angle counter clockwise (in degrees). Default = 0
+            
+        Return:
+            None
         """
         # find centroid using first moment of area equation
         sumA=sum([a.area for a in self.patch_fibers])
@@ -200,23 +219,28 @@ class Section:
     
     def run_moment_curvature(self, phi_target, P=0, N_step=100, show_progress=False):
         """
-        Start moment curvature analysis
-        Arguments:
-            phi_target      analysis will attempt to reach this target curvature
-                                The user should specify how far to push the section. It is difficult to
-                                specify a default value as curvature is unit dependent (i.e. 1/in vs. 1/mm)
-                                A good starting point is to estimate yield curvature:
-                                    phi_yield ~= ecu / (1-j)d ~= 0.003 / 0.25d
-                                    example: 24 in deep section => 0.003 / (0.25)24 = 5.0 e-4      1/in
-                                    example: 600 mm deep section => 0.003 / (0.25)600 = 2.0 e-5    1/mm
-            P               applied axial load (-ve is compression)
-                                OPTIONAL: default = 0
-            N_step          number of data points to reach phi_target. Size of curvature increment.
-                                OPTIONAL: default = 100
-            show_progress   flag to print out moment curvature run status
-                                OPTIONAL: default = False
-        Returns:
-            df_results      a dataframe containing all MK analysis results
+        Start moment curvature analysis.
+        
+        Args:
+            phi_target (float):
+                The moment curvature analysis proceed until thsi target curvature. Please note curvature is
+                unit dependent (i.e. 1/in vs. 1/mm). A good starting point is to estimate yield curvature:
+                    phi_yield ~= ecu / (1-j)d ~= 0.003 / 0.25d
+                    example: 24 in deep section => 0.003 / (0.25)24 = 5.0 e-4      1/in
+                    example: 600 mm deep section => 0.003 / (0.25)600 = 2.0 e-5    1/mm
+                    
+            (OPTIONAL) P = 0 (float):
+                applied axial load (-ve is compression)
+                
+            (OPTIONAL) N_step = 100 (int):
+                number of data points to reach phi_target. Size of curvature increment.
+            
+            (OPTIONAL) show_progress = False (bool):
+                whether or not to print out status of moment curvature run
+
+        Return:
+            df_results (DataFrame):
+                a dataframe containing results of the moment curvature analysis
                                 
         Algorithm:
             0.) slowly increment curvature from 0 to an user-specified limit
@@ -249,14 +273,20 @@ class Section:
         x0 = self.depth/2
         for curvature in phi_list:
             if step == 0:
-                # cannot find root when curvature is 0 or close to 0.
+                # cannot find root when curvature is 0 or close to 0. Insert blanks
                 self.curvature.append(0)
                 self.neutral_axis.append(0)
                 self.momentx.append(0)
                 self.momenty.append(0)
                 self.K_tangent.append(0)
+                for f in self.patch_fibers:
+                    f.color_list.append(f.default_color)
+                    f.strain.append(0)
+                for f in self.node_fibers:
+                    f.color_list.append(f.default_color)
+                    f.strain.append(0)
             else:
-                root = secant_method(self.verify_equilibrium, args=curvature, x0=x0, x1=x0+0.1)
+                root = self.secant_method(self.verify_equilibrium, args=curvature, x0=x0, x1=x0+0.1)
                 correct_NA = root
                 
                 sumMx = 0
@@ -303,10 +333,52 @@ class Section:
         return self.table_MK
         
     
+    def secant_method(self, func, args, x0, x1, tol=1e-4, max_iteration = 100):
+        """
+        Helper method for moment curvature analysis. Root-finding via secant method.
+        
+        Args:
+            func                function:: f(x). In our case f(x) = verify_equilibrium(), and x = neutral-axis depth.
+            args                float:: additional argument to pass into f(x). In our case = curvature
+            x0                  float:: initial value 1 (ideally close to the root)
+            x1                  float:: initial value 2 close to x0 
+            tol                 (OPTIONAL) float:: tolerance for convergence
+            max_iteration       (OPTIONAL) int:: maximum number of interations before stopping
+            
+        Return:
+            x1                  float:: the root (x) where f(x) = 0
+        """
+        for i in range(max_iteration):
+            fx0 = func(x0, args)
+            fx1 = func(x1, args)
+            
+            # stop if converged on root
+            if abs(fx1 - fx0) < tol:
+                return x1
+            
+            # otherwise keep iterating
+            try:
+                x_next = x1 - fx1 * (x1 - x0) / (fx1 - fx0)
+            except ZeroDivisionError:
+                print("\tError: Division by zero. Secant method failed. Could not converge.")
+                return None
+            x0, x1 = x1, x_next
+
+        print("\tWarning: Maximum number of iterations reached. The method may not have converged.")
+        print("\tsumF = {:.2f}".format(func(x1,args)))
+        return x1
+    
+    
     def verify_equilibrium(self, NA, args):
         """
-        Function used for root-finding. 
-        Check if equilibrium is established (sumF=0) at assumed neutral axis depth
+        Helper method for moment curvature analysis. This is the f(x) function passed into secant method.
+        
+        Args:
+            NA              float:: an assumed neutral axis depth
+            args            float:: curvature at current load step
+        
+        Return:
+            sumF - P        float:: force summation. Equilibrium is established if equal to zero.
         """
         curvature = args
         P = self.axial
@@ -324,20 +396,21 @@ class Section:
         """
         Get node fiber data from moment curvature anlysis
         
-        Arguments:
-            tag         node fiber tag (use preview_section(show_tag=True) to see ID)
+        Args:
+            tag         int:: node fiber tag (use fkit.plotter.preview_section(show_tag=True) to see IDs)
             
-        Returns:
-            A dictionary with the following keys
-                "fiber type" - fiber type
-                "coord" - coordinate of node fiber
-                "depth" - depth of node fiber with respect to extreme compression fiber
-                "ecc" - distance from section centroid to node fiber
-                "stress" - stress history
-                "strain" - strain history
-                "force" - force contribution history 
-                "momentx" - moment about x-axis contribution 
-                "momenty" - moment about y-axis contribution 
+        Return:
+            data_dict   dict:: A dictionary that stores the fiber data. Available keys:
+                                data_dict["area"] - area assigned to node fiber
+                                data_dict["coord"] - coordinate of fiber (x,y)
+                                data_dict["depth"] - depth of fiber with respect to extreme compression fiber
+                                data_dict["ecc"] - distance from section centroid to fiber
+                                data_dict["fiber type"] - fiber type (e.g. Hognestad)
+                                data_dict["stress"] - stress at each load step
+                                data_dict["strain"] - strain at each load step
+                                data_dict["force"] - force contribution at each load step
+                                data_dict["momentx"] - moment about x-axis contribution at each load step
+                                data_dict["momenty"] - moment about y-axis contribution at each load step
         """
         strain_history = self.node_fibers[tag].strain
         stress_history = [self.node_fibers[tag].stress_strain(x) for x in strain_history]
@@ -363,24 +436,23 @@ class Section:
         """
         Get patch fiber data from moment curvature anlysis
         
-        Arguments:
-            location    location can be "top", "bottom", or a coordinate list [x,y]
-                            if "top", data from top-most fiber will be reported (max y)
-                            if "bottom", data from bottom-most fiber will be reported (min y)
-                            if a user-specified coordinate, the program will find the nearest fiber
-            
-        Returns:
-            A dictionary with the following keys
-                "fiber type" - fiber type
-                "centroid" - x,y coordinate of patch centroid
-                "area" - area of the fiber
-                "depth" - depth of node fiber with respect to extreme compression fiber
-                "ecc" - distance from section centroid to node fiber
-                "stress" - stress history
-                "strain" - strain history
-                "force" - force contribution history 
-                "momentx" - moment about x-axis contribution 
-                "momenty" - moment about y-axis contribution 
+        Args:
+            location        str or (float):: location can be "top", "bottom", or a [x,y] coordinate .
+                                if "top", data from top-most fiber will be reported (max y)
+                                if "bottom", data from bottom-most fiber will be reported (min y)
+                                if a user-specified coordinate, the program will find the nearest fiber
+        Return:
+            data_dict   dict:: A dictionary that stores the fiber data. Available keys:
+                                data_dict["area"] - area of patch fiber
+                                data_dict["centroid"] - x,y coordinate of patch fiber centroid
+                                data_dict["depth"] - depth of node fiber with respect to extreme compression fiber
+                                data_dict["ecc"] - distance from section centroid to  fiber
+                                data_dict["fiber type"] - fiber type (e.g. Hognestad)
+                                data_dict["stress"] - stress at each load step
+                                data_dict["strain"] - strain at each load step
+                                data_dict["force"] - force contribution at each load step
+                                data_dict["momentx"] - moment about x-axis contribution at each load step
+                                data_dict["momenty"] - moment about y-axis contribution at each load step
         """
         # find tag of closest fiber
         tag = None
@@ -433,19 +505,26 @@ class Section:
 
     def run_PM_interaction(self, fpc, fy, Es):
         """
-        Start PM interaction analysis per ACI-318. Solution is independent
-        of user-specified fibers.
+        Start ACI 318 PM interaction analysis. Please note solution is independent of user-specified fiber material 
+        as all concrete fibers are converted to rectangular stress block behavior, and all rebars are converted to 
+        elastic-perfect-plastic behavior.
         
-        Arguments:
-            fpc     concrete compressive strength (ksi or MPa)
-                        Note that Ec is calculated internally. Unit of fpc is inferred.
-                            If fpc > 15, assume unit is Mpa and Ec = 4700 * sqrt(fpc)
-                            if fpc <= 15, assume unit is ksi and Ec = 57000 * sqrt(fpc*1000) / 1000 
-            fy      rebar yield strength (ksi or MPa)
-            Es      elastic modulus of rebar (ksi or MPa)
+        Args:
+            fpc (float):
+                Concrete compressive strength (ksi or MPa).
+                Note that Ec is calculated internally. Unit of fpc is inferred.
+                    If fpc > 15, assume unit is Mpa and Ec = 4700 * sqrt(fpc)
+                    if fpc <= 15, assume unit is ksi and Ec = 57000 * sqrt(fpc*1000) / 1000 
+                    
+            fy (float):
+                Rebar yield strength (ksi or MPa)
+                
+            Es (float):
+                Elastic modulus of rebar (ksi or MPa)
             
-        Returns:
-            df_result   a dataframe containing MK analysis results
+        Return:
+            df_result (DataFrame):
+                A dataframe containing coordinates for the PM interaction surface.
         
         Key ACI 318 Assumptions:
             - for concrete, use rectangular stress block (alpha = 0.85, beta ranges from 0.65 to 0.85)
@@ -465,11 +544,11 @@ class Section:
             3.) back to step 1, assume another c value until c = inf
             4.) repeat step 1-3 with section rotated 180 degrees to get the other side
     
-        Please Note:
+        Note:
             Internally within fkit, the sign convention is +P = tension, -P = compression
             This is opposite of what's commonly used within the concrete design industry.
             For plotting and exporting purposes, the sign on P is flipped. 
-            But within the backend, the +P = tension convention should be followed
+            But within this object, the +P = tension convention is followed
         """
         # rectangular stress block parameter per ACI
         alpha = 0.85
@@ -527,7 +606,8 @@ class Section:
            
     def get_appropriate_NA(self, fy, fpc, Es, beta, alpha):
         """
-        generate neutral axis depths in 4 distinct regions
+        Helper method called in run_PM_interaction. Essentially this helps distribute the points
+        along the interaction curve better. Generate neutral axis depths in 4 distinct regions
             1. pure tension to pure bending
             2. pure bending to fs = fy
             3. fs=fy to fs=0
@@ -585,8 +665,8 @@ class Section:
     
     def get_PM_data(self, NA_depth, fpc, fy, Es, ey, alpha, beta):
         """
-        Internal method used by run_interaction for getting P,Mx,My points at various
-        neutral axis depths
+        Helper method used during PM Interaction analysis. Called by run_PM_interaction()
+        to get (P, Mx, My) points at various neutral axis depths.
         """
         P = []
         Mx = []
@@ -632,9 +712,16 @@ class Section:
         return [P,Mx,NA_depth,My,resistance_factor, phi_P, phi_Mx, phi_My]
         
         
-    
-    def create_output_folder(self, result_folder="exported_data_fkit"):
-        """Create a folder in current working directory to store results"""
+    def create_output_folder(self, result_folder):
+        """
+        Helper method to create folder in current working directory. Called by export_data()
+        
+        Args:
+            result_folder       str:: name of folder to create
+            
+        Return:
+            None
+        """
         parent_dir = os.getcwd()
         
         # check if path exists. Handle errors and mkdir if needed
@@ -656,13 +743,19 @@ class Section:
         self.output_dir = output_dir
         
     
-    def export_data(self):
+    def export_data(self, save_folder = "exported_data_fkit"):
         """
-        Export results to csv files.
+        Export data in csv format in a save_folder which will be created in the user current working directory.
+        
+        Args:
+            save_folder     (OPTIONAL) str:: default folder name = "exported_data_fkit"
+            
+        Return:
+            None
         """
         # create folder
         if not self.folder_created:
-            self.create_output_folder()
+            self.create_output_folder(result_folder=save_folder)
         
         # export data to csv
         if self.MK_solved:
@@ -676,29 +769,3 @@ class Section:
 
 
 
-
-def secant_method(func, args, x0, x1, tol=1e-4, max_iteration = 100):
-    """secant method for root finding"""
-    # edge case for when curvature = 0
-    if args == 0:  
-        return x0
-    
-    # start iteration
-    for i in range(max_iteration):
-        fx0 = func(x0, args)
-        fx1 = func(x1, args)
-        
-        if abs(fx1 - fx0) < tol:  # converged
-            return x1
-
-        try:
-            x_next = x1 - fx1 * (x1 - x0) / (fx1 - fx0)
-        except ZeroDivisionError:
-            print("\tError: Division by zero. Secant method failed. Could not converge.")
-            return None
-
-        x0, x1 = x1, x_next
-
-    print("\tWarning: Maximum number of iterations reached. The method may not have converged.")
-    print("\tsumF = {:.2f}".format(func(x1,args)))
-    return x1

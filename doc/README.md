@@ -194,6 +194,7 @@ PM_results = my_section.run_interaction(fpc=4, fy=60, Es=29000)
 * tag: int
   * node fiber ID. Use preview_section(show_tag=True) to see node fiber IDs
 * The returned dictionary have the following keys:
+  * `...["area"]` - area assigned to node fiber
   * `...["coord"]` - coordinate of node fiber (x, y)
   * `...["depth"]` - depth of node fiber with respect to the topmost compression fiber
   * `...["ecc"]` - distance between fiber and section centroid (ex, ey)
