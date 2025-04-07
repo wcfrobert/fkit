@@ -20,7 +20,7 @@ class Section:
         Section.add_patch()
         Section.mesh()
         Section.run_moment_curvature()
-        Section.run_Icr_analysis()
+        Section.calculate_Icr()
         Section.run_PM_interaction()
         Section.export_data()
     """
@@ -31,7 +31,7 @@ class Section:
         self.N_bar = 0                      # total number of node fibers in section
         self.N_fiber = 0                    # total number of patch fibers in section
         self.area = None                    # total area of all patch fibers
-        self.centroid = None                # geometric centroid of section
+        self.centroid = None                # geometric centroid of section (x, y)
         self.ymax = None                    # max y coordinate of any fiber (used to determine fiber depth)
         self.depth = None                   # total depth of section (dimension in y)
         
@@ -42,17 +42,22 @@ class Section:
         self.momenty = []                   # list of minor-axis moment at each load step (0 for symmetric sections)
         self.K_tangent = []                 # list of moment-curvature tangent slope at each load step
         self.axial = 0                      # user-specified axial force for moment-curvature analysis
-        self.table_MK = None                # dataframe containing all moment curvature analysis results
+        self.df_MK_results = None           # dataframe containing all moment curvature analysis results
+        self.Ig = None                      # gross moment of inertia (ignoring all node fibers)
+        self.Icr = None                     # list of cracked moment of inertia at each load step
+        self.xc_cracked = None              # x centroid at each load step (cracked fibers are removed)
+        self.yc_cracked = None              # y centroid at each load step (cracked fibers are removed)
         
         # PM interaction surface parameters
         self.PM_surface = {}                # dictionary of PM interaction surface points
                                                 # key = degrees from 0 to 360 (right now only 0 and 180), 
                                                 # value = [[P], [Mx], [NA_depth], [My], [resistance_factor], [phi_P], [phi_Mx], [phi_My]]
-        self.table_PM = None                # dataframe containing all PM interaction analysis results
+        self.df_PM_results = None           # dataframe containing all PM interaction analysis results
         
         # other parameters
         self.MK_solved = False              # boolean to see if moment curvature analysis has been conducted
         self.PM_solved = False              # boolean to see if PM interaction analysis has been conducted
+        self.Icr_solved = False             # boolean to see if Icr analysis has been conducted
         self.folder_created = False         # boolean to see if export folder has already been created
         self.output_dir = None              # path where export data will be stored   
     
@@ -329,8 +334,8 @@ class Section:
         result_dict["MinorAxisMoment"] = self.momenty
         result_dict["Axial"] = self.axial
         result_dict["Slope"] = self.K_tangent
-        self.table_MK = pd.DataFrame.from_dict(result_dict)
-        return self.table_MK
+        self.df_MK_results = pd.DataFrame.from_dict(result_dict)
+        return self.df_MK_results.copy()
         
     
     def secant_method(self, func, args, x0, x1, tol=1e-4, max_iteration = 100):
@@ -501,7 +506,89 @@ class Section:
             "momenty":momenty_history
             }
         return data_dict
+
     
+    def calculate_Icr(self, Es, Ec):
+        """
+        Calculate cracked moment of inertia (Icr) at each load step. This method can only
+        be called after a successful moment curvature analysis.
+        
+        This function only makes sense in the context of a reinforced concrete sections.
+        Please specify Ec and Es of the concrete and steel material. All patch fibers
+        are assumed to be concrete, and all node fibers are assumed to be rebar.
+        
+        Args:
+            Es                  float:: rebar steel Young's modulus
+            Ec                  float:: concrete material Young's modulus
+        
+        Return:
+            df_results          (DataFrame)::a result dataframe summarizing Icr at each load step
+        
+        Note:
+            Moment of intertial integral is numerically approximated by a summation.
+            For best accuracy. Please mesh your section as fine as possible.
+        """
+        # exit if no moment curvature data
+        if not self.MK_solved:
+            print("ERROR: Please run a moment curvature analysis first!")
+            return None
+        
+        # gross moment of inertia (without considering node fibers)
+        Ig = 0
+        for f in self.patch_fibers:
+            A = f.area
+            y = f.ecc[1]
+            b = max([coord[0] for coord in f.vertices]) - min([coord[0] for coord in f.vertices])
+            h = max([coord[1] for coord in f.vertices]) - min([coord[1] for coord in f.vertices])
+            Ig += b*h*h*h/12 + A*y*y
+        self.Ig = Ig
+        
+        # compute cracked moment of inertia at each load step
+        ns = Es / Ec
+        Icr = [Ig]
+        x_centroid = [self.centroid[0]]
+        y_centroid = [self.centroid[1]]
+        for i in range(1, len(self.curvature)): # skip first step with 0 curvature
+            x_list = []
+            y_list = []
+            A_list = []
+            dy_list = []
+            
+            # loop through node fibers
+            for f in self.node_fibers:
+                A_list.append(f.area * ns) # technically need to multiply by ns-1 for compression steel. Refine later.
+                x_list.append(f.ecc[0])
+                y_list.append(f.ecc[1])
+                
+            # loop through each patch fiber (only record if stress != 0)
+            for f in self.patch_fibers:
+                strain = f.strain[i]
+                stress = f.stress_strain(strain)
+                if not math.isclose(stress, 0):
+                    A_list.append(f.area)
+                    x_list.append(f.ecc[0])
+                    y_list.append(f.ecc[1])
+                
+            # calculate current centroid after cracking
+            xc = sum([-x*A for x,A in zip(x_list, A_list)]) / sum(A_list)
+            yc = sum([-y*A for y,A in zip(y_list, A_list)]) / sum(A_list)
+            x_centroid.append(xc)
+            y_centroid.append(yc)
+            
+            # calculate Icr
+            dy_list = [y + (yc - self.centroid[1]) for y in y_list]
+            Icr_current = sum([y*y*A for y,A in zip(dy_list, A_list)])
+            Icr.append(Icr_current)
+        
+        # save results
+        self.Icr = Icr
+        self.xc_cracked = x_centroid
+        self.yc_cracked = y_centroid
+        self.Icr_solved = True
+        self.df_MK_results["Icr"] = self.Icr
+        self.df_MK_results["Icr/Ig"] = [min(1, I/self.Ig) for I in self.Icr]
+        return self.df_MK_results.copy()
+
 
     def run_PM_interaction(self, fpc, fy, Es):
         """
@@ -599,9 +686,9 @@ class Section:
         result_dict["P_factored"] = self.PM_surface[0][5] + self.PM_surface[180][5]
         result_dict["Mx_factored"] = self.PM_surface[0][6] + self.PM_surface[180][6]
         result_dict["My_factored"] = self.PM_surface[0][7] + self.PM_surface[180][7]
-        self.table_PM = pd.DataFrame.from_dict(result_dict)
+        self.df_PM_results = pd.DataFrame.from_dict(result_dict)
         
-        return self.table_PM
+        return self.df_PM_results.copy()
         
            
     def get_appropriate_NA(self, fy, fpc, Es, beta, alpha):
@@ -760,11 +847,11 @@ class Section:
         # export data to csv
         if self.MK_solved:
             filename = os.path.join(self.output_dir, "moment_curvature.csv")
-            self.table_MK.to_csv(filename)
+            self.df_MK_results.to_csv(filename)
             
         if self.PM_solved:
             filename = os.path.join(self.output_dir, "interaction.csv")
-            self.table_PM.to_csv(filename)
+            self.df_PM_results.to_csv(filename)
                 
 
 

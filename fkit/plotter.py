@@ -1,15 +1,21 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import math
 import numpy as np
 import os
 
 
 def preview_fiber(fiber,x_limit=[-0.03, 0.03]):
     """
-    Plot monotonic stress-strain curve of a defined fiber
-        fiber       patch or node fiber object
-        x_limit     max and min strain for x-axis limit
-                        OPTIONAL: default = [-0.03, 0.03]
+    Plot the stress-strain relationshiop of a fiber.
+
+    Args:
+        fiber       NodeFiber or PatchFiber:: fiber kit patch or node fiber object
+        x_limit     (OPTIONAL) [float]:: x-axis limit for plotting. default = [-0.03, 0.03]
+    
+    Return:
+        fig         Figure:: generated matplotlib figure
+        
     """
     strain_x = np.linspace(x_limit[0],x_limit[1],200)
     stress_y = [fiber.stress_strain(a) for a in strain_x]
@@ -31,10 +37,15 @@ def preview_fiber(fiber,x_limit=[-0.03, 0.03]):
 
 def compare_fibers(fibers, labels, x_limit):
     """
-    Compare material properties of several fibers on one plot
-        fibers          list of fibers
-        labels          list of string labels
-        x_limit         max and min strain for x-axis limit
+    Compare material properties of several fibers on a single plot.
+    
+    Args:
+        fibers          [NodeFiber or PatchFiber]:: list of fibers to visualize
+        labels          [str]:: list of label to distinguish between fibers.
+        x_limit         (OPTIONAL) [float]:: x-axis limit for plotting. default = [-0.03, 0.03]
+    
+    Return:
+        fig             Figure:: generated matplotlib figure
     """
     # range of strain to plot
     fig, axs = plt.subplots()
@@ -62,9 +73,13 @@ def compare_fibers(fibers, labels, x_limit):
 def preview_section(section, show_tag=False):
     """
     Preview section geometry
-        section         section object
-        show_tag        flag to show node fiber tags
-                            OPTIONAL: default = False
+    
+    Args:
+        section         Section:: fiber kit section object
+        show_tag        (OPTIONAL) bool:: flag to show node fiber tags. Default = False
+
+    Return:
+        fig             Figure:: generated matplotlib figure
     """
     # initialize
     fig, axs = plt.subplots(figsize=(11,8.5))
@@ -91,8 +106,13 @@ def preview_section(section, show_tag=False):
 
 def plot_MK(section):
     """
-    Plot moment curvature analysis
-        section     section object
+    Plot moment curvature diagram.
+    
+    Args:
+        section     Section:: fiber kit section object
+        
+    Return:
+        fig         Figure:: generated matplotlib figure
     """
     if not section.MK_solved:
         raise RuntimeError("Please run moment curvature analysis before plotting")
@@ -110,7 +130,7 @@ def plot_MK(section):
     axs[0].scatter(section.centroid[0], section.centroid[1], c="red", marker="x",linewidth=3,s=240, zorder=3)
     
     # formatting
-    fig.suptitle("Moment Curvature Analysis (P = {})".format(section.axial))
+    fig.suptitle("Moment Curvature Analysis (P = {})".format(section.axial), fontweight="bold", fontsize=16)
     axs[0].xaxis.grid()
     axs[0].yaxis.grid()
     axs[0].set_axisbelow(True)
@@ -130,13 +150,23 @@ def plot_MK(section):
     return fig
 
 
+def plot_MK_3D(section):
+    """
+    Plot moment curvature results in 3D interactive format using Plotly
+    """
+    pass
+
 
 def animate_MK(section):
     """
-    Generate a folder containing pngs which can be converted to gif
-        section     section object
-        
-    Run this in cmd with ImageMagick: "magick -delay 5 -loop 0 *.png demo.gif"
+    Generate a folder of pngs for each load step. The pngs can then be stapled together
+    externally into a gif. For example, using ImageMagick: "magick -delay 5 -loop 0 *.png demo.gif"
+    
+    Args:
+        section     Section:: fiber kit section object
+
+    Return:
+        None
     """
     plt.ioff()
     if not section.MK_solved:
@@ -189,16 +219,15 @@ def animate_MK(section):
 
 def plot_PM(section, P=None, M=None):
     """
-    Plot section ACI 318 PM interaction surface (both nominal and factored)
-        section     section object
-        P           list of axial demands
-                        OPTIONAL: default = None
-        M           list of moment demand
-                        OPTIONAL: default = None
-    Note:
-        Internally within fkit, the sign convention is +P = tension, -P = compression
-        For plotting and exporting purposes, the sign on P is flipped such that the positive
-        y-axis means compression.
+    Plot ACI 318 PM interaction surface (both nominal and factored).
+    
+    Args:
+        section     Section:: fiber kit section object
+        P           (OPTIONAL) (float):: list of axial demands to plot
+        M           (OPTIONAL) (float):: list of moment demand to plot
+        
+    Return: 
+        fig         Figure:: generated matplotlib figure
     """
     if not section.PM_solved:
         raise RuntimeError("Please run interaction analysis before plotting")
@@ -216,7 +245,7 @@ def plot_PM(section, P=None, M=None):
     axs[0].scatter(section.centroid[0], section.centroid[1], c="red", marker="x",linewidth=3,s=300, zorder=3)
     
     # formatting
-    fig.suptitle("Section Interaction Surface (ACI-318)")
+    fig.suptitle("Section Interaction Surface (ACI-318)", fontweight="bold", fontsize=16)
     axs[0].xaxis.grid()
     axs[0].yaxis.grid()
     axs[0].set_axisbelow(True)
@@ -274,6 +303,76 @@ def plot_PM(section, P=None, M=None):
     axs[1].scatter(M, P, c="red", marker="x",linewidth=2,s=100)
     
     return fig
+
+
+
+
+def plot_Icr(section):
+    """
+    Plot the section's cracked moment of inertia at each load step as a ratio of Ig. 
+    
+    Args:
+        section         Section:: fiber kit section object
+    
+    Return:
+        fig             Figure:: generated matplotlib figure
+    """
+    # set up custom subplots
+    fig = plt.figure(figsize=(16,9), dpi=200)
+    gs = fig.add_gridspec(2,2)
+    axs1 = fig.add_subplot(gs[:, 0])
+    axs2 = fig.add_subplot(gs[0, 1])
+    axs3 = fig.add_subplot(gs[1, 1], sharex=axs2)
+    
+    # plot meshes
+    for f in section.node_fibers:
+        radius = (f.area/3.1415926)**(0.5)
+        axs1.add_patch(patches.Circle(f.coord,radius=radius,facecolor=f.color_list[-1],edgecolor="black",zorder=2))
+    for f in section.patch_fibers:
+        axs1.add_patch(patches.Polygon(np.array(f.vertices),closed=True,facecolor=f.color_list[-1],edgecolor="black",zorder=1,lw=1.0))
+    
+    # plot moment curvature
+    axs2.plot(section.curvature,section.momentx, lw=3, c="#435be2")
+    axs2.plot(section.curvature,section.momenty, linestyle="--")
+    
+    # plot cracked moment of inertia
+    I_ratio = [min(1, I/section.Ig) for I in section.Icr]
+    axs3.plot(section.curvature, I_ratio, lw=3, c="#435be2")
+    
+    # plot centroid
+    axs1.scatter(section.xc_cracked[-1], section.yc_cracked[-1], c="red", marker="x",linewidth=2, s=240, zorder=3)
+    
+    # formatting
+    fig.suptitle("Cracked Moment of Inertia", fontweight="bold", fontsize=16)
+    axs1.grid()
+    axs1.set_axisbelow(True)
+    axs1.set_aspect('equal', 'box')
+    
+    axs2.grid()
+    axs2.axhline(0, color='black')
+    axs2.axvline(0, color='black')
+    axs2.set_ylabel("Moment")
+    
+    axs3.grid()
+    axs3.axhline(0, color='black')
+    axs3.axvline(0, color='black')
+    axs3.set_ylabel("Icr / Ig")
+    axs3.set_xlabel("Curvature")
+    axs3.set_ylim([0,1.1])
+    
+    plt.tight_layout()
+    return fig
+
+    
+
+
+
+
+
+
+
+
+
 
 
 
