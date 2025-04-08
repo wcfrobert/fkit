@@ -37,11 +37,9 @@ Notable Features:
 * Large selection of material models (Hognestad, Mander, Todeschini, Ramberg-Osgood, Menegotto-Pinto, Bilinear, Trilinear, Multilinear)
 * Moment curvature analysis
 * P+M interaction analysis
-* Fast and Intuitive to use. Run moment curvature with 4 lines of code
-* Rotate section to any orientation
-* Sections can be quickly defined with SectionBuilder
-* Beautiful visualizations
-* Flexible and transparent. Export data and view fiber stress/strain progression
+* Cracked moment of inertia calculations
+* Fast, Intuitive to use, and fully transparent. View stress/strain data of every fiber at each load step
+* Great looking visualizations
 
 
 <div align="center">
@@ -67,18 +65,24 @@ fiber_steel    = fkit.nodefiber.Bilinear(fy=60, Es=29000)
 section1 = fkit.sectionbuilder.rectangular(width = 18, 
                                            height = 24, 
                                            cover = 2, 
-                                           top_bar = [0.6, 4, 1, 0], 
-                                           bot_bar = [0.6, 4, 2, 3],  
+                                           top_bar = [0.6, 4, 1, 0], #[bar_area, nx, ny, y_spacing]
+                                           bot_bar = [0.6, 4, 2, 3], #[bar_area, nx, ny, y_spacing] 
                                            concrete_fiber = fiber_concrete, 
                                            steel_fiber = fiber_steel)
 
-# moment curvature and PM interaction
-MK_results = section1.run_moment_curvature(phi_target=0.0004)
+# moment curvature
+MK_results = section1.run_moment_curvature(phi_target=0.0003)
+
+# cracked moment of inertia calculations
+Icr_results = section1.calculate_Icr(Es=29000, Ec=3605)
+
+# PM Interaction surface analysis
 PM_results = section1.run_PM_interaction(fpc=4, fy=60, Es=29000)
 
 # plot results
 fkit.plotter.plot_MK(section1)
 fkit.plotter.plot_PM(section1)
+fkit.plotter.plot_Icr(section1)
 ```
 
 Three other sample scripts are provided to help get the users up and running:
@@ -88,9 +92,7 @@ Three other sample scripts are provided to help get the users up and running:
 * `main_sectionbuilder.py` - illustrates some of the common sections that can be created with sectionBuilder
 * `main_notebook.ipynb` - for users more accustomed to notebook environments
 
-The above example script uses US imperial unit **(kips, in, ksi)**. You may also use SI units **(N, mm, MPa)**. 
-
-`plot_MK()` and `plot_PM()` produces the visualizations below. `export_data()` generates a result folder in the current working directory.
+The above example script uses US imperial unit **(kips, in, ksi)**. You may also use SI units **(N, mm, MPa)**. The quick start script produces the following visualizations:
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.png?raw=true" alt="demo" style="width: 80%;" />
@@ -99,7 +101,9 @@ The above example script uses US imperial unit **(kips, in, ksi)**. You may also
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo3.png?raw=true" alt="demo" style="width: 80%;" />
 </div>
-
+<div align="center">
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/Icr.png?raw=true" alt="demo" style="width: 80%;" />
+</div>
 
 
 
@@ -218,8 +222,10 @@ Step 3: Moment curvature analysis
 #########################################
 """
 # moment-curvature analysis
-phi_yield_approximate = 0.003 / (0.25*18)
-MK_results = section2.run_moment_curvature(phi_target = phi_yield_approximate, P=-180)
+phi_yield = 0.003 / (0.25*24) # estimate of yield curvature
+MK_results = section2.run_moment_curvature(phi_target = phi_yield, P=-180)
+Icr_results = section2.calculate_Icr(Es=29000, Ec=3605)
+
 
 # obtain stress/strain history of any fiber
 fiber_data        = section2.get_patch_fiber_data(location=[0.0, 8.25])
@@ -229,6 +235,7 @@ fiber_data_rebar3 = section2.get_node_fiber_data(tag=3)
 
 # plot results
 fkit.plotter.plot_MK(section2)
+fkit.plotter.plot_Icr(section2)
 
 # animate results
 # fkit.plotter.animate_MK(section2)
@@ -277,7 +284,7 @@ fkit.patchfiber.Hognestad?
 
 Here is a comprehensive list of all public methods available to the user. 
 
-**Defining material properties**: [More Info](https://github.com/wcfrobert/fkit/tree/master/doc#fiber-material-models)
+**Fiber Material Models**: [More Info](https://github.com/wcfrobert/fkit/tree/master/doc#fiber-material-models)
 
 * `fkit.patchfiber.Hognestad(fpc, Ec="default", eo="default", emax=0.0038, alpha=0, take_tension=False, fr="default", er="default", default_color="lightgray")`
 * `fkit.patchfiber.Todeschini(fpc, Ec="default", eo="default", emax=0.0038, alpha=0, take_tension=False, fr="default", er="default", default_color="lightgray")`
@@ -296,7 +303,7 @@ Here is a comprehensive list of all public methods available to the user.
 
 
 
-**Defining sections manually**: [More Info](https://github.com/wcfrobert/fkit/tree/master/doc#manual-section-creation)
+**Section Definition**: [More Info](https://github.com/wcfrobert/fkit/tree/master/doc#manual-section-creation)
 
 * `fkit.section.Section.add_patch(xo, yo, b, h, nx, ny, fiber)`
 * `fkit.section.Section.add_bar_group(xo, yo, b, h, nx, ny, area, perimeter_only, fiber)`
@@ -305,7 +312,7 @@ Here is a comprehensive list of all public methods available to the user.
 
 
 
-**Defining sections with SectionBuilder**: [More Info](https://github.com/wcfrobert/fkit/tree/master/doc#sectionbuilder)
+**SectionBuilder**: [More Info](https://github.com/wcfrobert/fkit/tree/master/doc#sectionbuilder)
 
 * `fkit.sectionbuilder.rectangular(width, height, cover, top_bar, bot_bar, concrete_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
 * `fkit.sectionbuilder.rectangular_confined(width, height, cover, top_bar, bot_bar, core_fiber, cover_fiber, steel_fiber, mesh_nx=0.5, mesh_ny=0.5)`
@@ -320,9 +327,10 @@ Here is a comprehensive list of all public methods available to the user.
 
 
 
-**Section analysis commands**: [More Info](https://github.com/wcfrobert/fkit/tree/master/doc#moment-curvature-analysis)
+**Analysis commands**: [More Info](https://github.com/wcfrobert/fkit/tree/master/doc#moment-curvature-analysis)
 
 * `fkit.section.Section.run_moment_curvature(phi_target, P=0, N_step=100, show_progress=False)`
+* `fkit.section.Section.calculate_Icr(Es, Ec)`
 * `fkit.section.Section.run_PM_interaction(fpc, fy, Es)`
 * `fkit.section.Section.get_node_fiber_data(tag)`
 * `fkit.section.Section.get_patch_fiber_data(location)`
@@ -330,12 +338,13 @@ Here is a comprehensive list of all public methods available to the user.
 
 
 
-**Visualization**: [More Info](https://github.com/wcfrobert/fkit/tree/master/doc#visualization)
+**Visualizations**: [More Info](https://github.com/wcfrobert/fkit/tree/master/doc#visualization)
 
 * `fkit.plotter.preview_fiber(fiber, xlim=[-0.03, 0.03])`
 * `fkit.plotter.preview_section(section, show_tag=False)`
 * `fkit.plotter.plot_MK(section)`
 * `fkit.plotter.animate_MK(section)`
+* `fkit.plotter.plot_Icr(section)`
 * `fkit.plotter.plot_PM(section, P=None, M=None)`
 
 

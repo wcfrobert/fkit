@@ -56,8 +56,10 @@ Step 3: Moment curvature analysis
 #########################################
 """
 # moment-curvature analysis
-phi_yield_approximate = 0.003 / (0.25*18)
-MK_results = section2.run_moment_curvature(phi_target = phi_yield_approximate, P=-180)
+phi_yield = 0.003 / (0.25*24) # estimate of yield curvature
+MK_results = section2.run_moment_curvature(phi_target = phi_yield, P=-180)
+Icr_results = section2.calculate_Icr(Es=29000, Ec=3605)
+
 
 # obtain stress/strain history of any fiber
 fiber_data        = section2.get_patch_fiber_data(location=[0.0, 8.25])
@@ -67,6 +69,7 @@ fiber_data_rebar3 = section2.get_node_fiber_data(tag=3)
 
 # plot results
 fkit.plotter.plot_MK(section2)
+fkit.plotter.plot_Icr(section2)
 
 # animate results
 # fkit.plotter.animate_MK(section2)

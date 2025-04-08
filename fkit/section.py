@@ -525,7 +525,7 @@ class Section:
             df_results          (DataFrame)::a result dataframe summarizing Icr at each load step
         
         Note:
-            Moment of intertial integral is numerically approximated by a summation.
+            Moment of inertia integral is numerically approximated by a summation.
             For best accuracy. Please mesh your section as fine as possible.
         """
         # exit if no moment curvature data
