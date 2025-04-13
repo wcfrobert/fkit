@@ -402,8 +402,9 @@ class Section:
         Get node fiber data from moment curvature anlysis
         
         Args:
-            tag         int:: node fiber tag (use fkit.plotter.preview_section(show_tag=True) to see IDs)
-            
+            tag (int):
+                node fiber tag (use fkit.plotter.preview_section(show_tag=True) to see IDs),
+                
         Return:
             data_dict   dict:: A dictionary that stores the fiber data. Available keys:
                                 data_dict["area"] - area assigned to node fiber
@@ -422,7 +423,6 @@ class Section:
         force_history = [self.node_fibers[tag].area * x for x in stress_history]
         momentx_history = [self.node_fibers[tag].ecc[1] * x for x in force_history]
         momenty_history = [self.node_fibers[tag].ecc[0] * x for x in force_history]
-        
         data_dict={
             "fiber type":self.node_fibers[tag].name,
             "coord":self.node_fibers[tag].coord,
@@ -506,8 +506,119 @@ class Section:
             "momenty":momenty_history
             }
         return data_dict
-
     
+    
+    def get_all_fiber_data(self):
+        """
+        This method returns two dataframes that contain all available fiber data from moment
+        curvature analysis. Some columns will be object dtype to store lists of values at each load step.
+        
+        Args:
+            None
+            
+        Return:
+            df_nodefibers       DataFrame:: all node fiber data
+            df_patchfibers      DataFrame:: all patch fiber data
+        """
+        # node fibers
+        if len(self.node_fibers) == 0:
+            df_nodefibers = None
+        else:
+            data_dict={
+                "tag": [],
+                "fibertype": [],
+                "x": [],
+                "y": [],
+                "depth": [],
+                "ecc_x": [],
+                "ecc_y": [],
+                "stress": [],
+                "strain": [],
+                "force": [],
+                "momentx": [],
+                "momenty": [],
+                }
+            for fiber in self.node_fibers:
+                data_dict["tag"].append(fiber.tag)
+                data_dict["fibertype"].append(fiber.name)
+                data_dict["x"].append(fiber.coord[0])
+                data_dict["y"].append(fiber.coord[1])
+                data_dict["depth"].append(fiber.depth)
+                data_dict["ecc_x"].append(fiber.ecc[0])
+                data_dict["ecc_y"].append(fiber.ecc[1])
+                data_dict["strain"].append(fiber.strain)
+                stress_data = [fiber.stress_strain(x) for x in fiber.strain]
+                force_data = [fiber.area * x for x in stress_data]
+                data_dict["stress"].append(stress_data)
+                data_dict["force"].append(force_data)
+                data_dict["momentx"].append([fiber.ecc[1] * x for x in force_data])
+                data_dict["momenty"].append([fiber.ecc[0] * x for x in force_data])
+                
+            df_nodefibers = pd.DataFrame(data_dict)
+            df_nodefibers = df_nodefibers.astype({
+                "tag": "int32",
+                "fibertype": "string",
+                "x": "float64",
+                "y": "float64",
+                "depth": "float64",
+                "ecc_x": "float64",
+                "ecc_y": "float64",
+                "stress":  "object",
+                "strain": "object",
+                "force": "object",
+                "momentx": "object",
+                "momenty": "object"
+            })
+        
+        # patch fibers
+        if len(self.patch_fibers) == 0:
+            df_patchfibers = None
+        else:
+            data_dict={
+                "tag": [],
+                "fibertype": [],
+                "centroid": [],
+                "vertices": [],
+                "depth": [],
+                "ecc": [],
+                "stress": [],
+                "strain": [],
+                "force": [],
+                "momentx": [],
+                "momenty": [],
+                }
+            for fiber in self.patch_fibers:
+                data_dict["tag"].append(fiber.tag)
+                data_dict["fibertype"].append(fiber.name)
+                data_dict["centroid"].append(fiber.centroid)
+                data_dict["vertices"].append(fiber.vertices)
+                data_dict["depth"].append(fiber.depth)
+                data_dict["ecc"].append(fiber.ecc)
+                data_dict["strain"].append(fiber.strain)
+                stress_data = [fiber.stress_strain(x) for x in fiber.strain]
+                force_data = [fiber.area * x for x in stress_data]
+                data_dict["stress"].append(stress_data)
+                data_dict["force"].append(force_data)
+                data_dict["momentx"].append([fiber.ecc[1] * x for x in force_data])
+                data_dict["momenty"].append([fiber.ecc[0] * x for x in force_data])
+            df_patchfibers = pd.DataFrame(data_dict)
+            df_patchfibers = df_patchfibers.astype({
+                "tag": "int32",
+                "fibertype": "string",
+                "centroid": "object",
+                "vertices": "object",
+                "depth": "float64",
+                "ecc": "object",
+                "stress":  "object",
+                "strain": "object",
+                "force": "object",
+                "momentx": "object",
+                "momenty": "object"
+            })
+        
+        return df_nodefibers, df_patchfibers
+    
+
     def calculate_Icr(self, Es, Ec):
         """
         Calculate cracked moment of inertia (Icr) at each load step. This method can only
@@ -830,12 +941,12 @@ class Section:
         self.output_dir = output_dir
         
     
-    def export_data(self, save_folder = "exported_data_fkit"):
+    def export_data(self, save_folder = "fkit_result_folder"):
         """
         Export data in csv format in a save_folder which will be created in the user current working directory.
         
         Args:
-            save_folder     (OPTIONAL) str:: default folder name = "exported_data_fkit"
+            save_folder     (OPTIONAL) str:: default folder name = "fkit_result_folder"
             
         Return:
             None
@@ -850,7 +961,7 @@ class Section:
             self.df_MK_results.to_csv(filename)
             
         if self.PM_solved:
-            filename = os.path.join(self.output_dir, "interaction.csv")
+            filename = os.path.join(self.output_dir, "PM_interaction.csv")
             self.df_PM_results.to_csv(filename)
                 
 

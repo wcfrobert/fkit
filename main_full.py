@@ -22,17 +22,13 @@ fkit.plotter.preview_fiber(fiber_steel, x_limit=[-0.03, 0.03])
 Step 2: Define sections
 #########################################
 """
-# user may create sections manually
+# Option 1: draw section manually
 section1 = fkit.Section()
-
 section1.add_patch(xo=0, yo=0, b=18 ,h=18, nx=25, ny=25, fiber=fiber_unconfined)
-
 section1.add_bar_group(xo=2, yo=2, b=14, h=14, nx=3, ny=3, area=0.6, perimeter_only=True, fiber=fiber_steel)
+section1.mesh()
 
-section1.mesh(rotate=45)
-
-
-# most common sections can be quickly defined with SectionBuilder
+# Option 2: most sections can be defined with SectionBuilder
 section2 = fkit.sectionbuilder.rectangular_confined(width = 15, 
                                                     height = 24, 
                                                     cover = 1.5, 
@@ -49,19 +45,24 @@ fkit.plotter.preview_section(section1)
 fkit.plotter.preview_section(section2, show_tag=True)
 
 
-
 """
 #########################################
 Step 3: Moment curvature analysis
 #########################################
 """
+# roughly estimate target curvature, which is a measure of how much to push the section.
+phi_yield = 0.003 / (0.25*24)
+
 # moment-curvature analysis
-phi_yield = 0.003 / (0.25*24) # estimate of yield curvature
 MK_results = section2.run_moment_curvature(phi_target = phi_yield, P=-180)
+
+# calculate cracked moment of inertia at each load step
 Icr_results = section2.calculate_Icr(Es=29000, Ec=3605)
 
+# extract all fiber data
+df_nodefibers, df_patchfibers = section2.get_all_fiber_data()
 
-# obtain stress/strain history of any fiber
+# extract data of a specific fiber
 fiber_data        = section2.get_patch_fiber_data(location=[0.0, 8.25])
 fiber_data_top    = section2.get_patch_fiber_data(location="top")
 fiber_data_bottom = section2.get_patch_fiber_data(location="bottom")
@@ -80,19 +81,8 @@ fkit.plotter.plot_Icr(section2)
 Step 4: PMM interaction analysis
 #########################################
 """
-# generate PM interaction surface using ACI-318 assumptions
+# generate PM interaction surface using ACI-318 provisions
 PM_results = section2.run_PM_interaction(fpc=6, fy=60, Es=29000)
 
 # plot PM interaction surface
 fkit.plotter.plot_PM(section2, P=[50,400], M=[-500,3000])
-
-
-"""
-#########################################
-Step 5: Data export
-#########################################
-"""
-# export all data to csv
-section2.export_data()
-
-

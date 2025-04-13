@@ -1,7 +1,7 @@
 # import fkit
 import fkit
 
-# define fibers
+# define concrete and steel fibers
 fiber_concrete = fkit.patchfiber.Hognestad(fpc=4, take_tension=True)
 fiber_steel    = fkit.nodefiber.Bilinear(fy=60, Es=29000)
 
@@ -16,8 +16,9 @@ section1 = fkit.sectionbuilder.rectangular(width = 18,
 
 # moment curvature
 MK_results = section1.run_moment_curvature(phi_target=0.0003)
+df_nodefibers, df_patchfibers = section1.get_all_fiber_data()
 
-# cracked moment of inertia analysis
+# cracked moment of inertia
 Icr_results = section1.calculate_Icr(Es=29000, Ec=3605)
 
 # PM Interaction surface analysis

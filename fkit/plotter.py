@@ -242,7 +242,7 @@ def plot_PM(section, P=None, M=None):
         axs[0].add_patch(patches.Polygon(np.array(f.vertices),closed=True,facecolor=f.default_color,edgecolor="black",zorder=1,lw=1.0))
     
     # plot centroid
-    axs[0].scatter(section.centroid[0], section.centroid[1], c="red", marker="x",linewidth=3,s=300, zorder=3)
+    axs[0].scatter(section.centroid[0], section.centroid[1], c="red", marker="x",linewidth=2,s=300, zorder=3)
     
     # formatting
     fig.suptitle("Section Interaction Surface (ACI-318)", fontweight="bold", fontsize=16)
@@ -252,15 +252,14 @@ def plot_PM(section, P=None, M=None):
     axs[0].set_aspect('equal', 'box')
 
     # plot nominal interaction surface
-    # flipping P sign convention to match concrete design industry standard
-    # where +P is compression, -P is tension
-    # [P,Mx,NA_depth,My,resistance_factor,phi_P,phi_Mx,phi_My]
+    # indices: [P,Mx,NA_depth,My,resistance_factor,phi_P,phi_Mx,phi_My]
     M0 = [x for x in section.PM_surface[0][1]]
-    P0 = [-x for x in section.PM_surface[0][0]]
-    M180 = [-x for x in section.PM_surface[180][1]]
-    P180 = [-x for x in section.PM_surface[180][0]]
-    axs[1].plot(M0, P0, label="nominal",linestyle="-",c="blue", marker=".", markersize=8)
-    axs[1].plot(M180, P180, label="nominal",linestyle="-",c="blue", marker=".", markersize=8)
+    P0 = [-x for x in section.PM_surface[0][0]]  # flipped sign so +P is compression
+    M180 = [-x for x in section.PM_surface[180][1]] # flipped sign because 180 deg is on left side of plot
+    P180 = [-x for x in section.PM_surface[180][0]] # flipped sign so +P is compression
+    axs[1].plot(M0, P0, label="nominal",linestyle="-",c="blue", marker=None)
+    axs[1].plot(M180, P180, linestyle="-",c="blue", marker=None)
+    
     
     # factored interaction surface
     # split factored curve at 0.8Po
@@ -269,32 +268,33 @@ def plot_PM(section, P=None, M=None):
         if section.PM_surface[0][5][i] < 0.8*Po:
             split_index = i
             break
-    
     M0_factored = [x for x in section.PM_surface[0][6][:split_index]]
     P0_factored = [-x for x in section.PM_surface[0][5][:split_index]]
     M180_factored = [-x for x in section.PM_surface[180][6][:split_index]]
     P180_factored = [-x for x in section.PM_surface[180][5][:split_index]]
+    
     # close cap
     M180_factored.append(M0_factored[-1])
     P180_factored.append(P0_factored[-1])
     axs[1].plot(M0_factored, P0_factored, label="factored",linestyle="-",c="red")
-    axs[1].plot(M180_factored, P180_factored, label="factored",linestyle="-",c="red")
+    axs[1].plot(M180_factored, P180_factored, linestyle="-",c="red")
     
     # plot peak above 0.8Po with dotted line
     M0_factored_top = [x for x in section.PM_surface[0][6][split_index-1:]]
     P0_factored_top = [-x for x in section.PM_surface[0][5][split_index-1:]]
     M180_factored_top = [-x for x in section.PM_surface[180][6][split_index-1:]]
     P180_factored_top = [-x for x in section.PM_surface[180][5][split_index-1:]]
-    axs[1].plot(M0_factored_top, P0_factored_top, label="factored",linestyle="--",c="red")
-    axs[1].plot(M180_factored_top, P180_factored_top, label="factored",linestyle="--",c="red")
+    axs[1].plot(M0_factored_top, P0_factored_top, linestyle="--",c="red")
+    axs[1].plot(M180_factored_top, P180_factored_top, linestyle="--",c="red")
     
     # styling
     axs[1].xaxis.grid()
     axs[1].yaxis.grid()
     axs[1].axhline(0, color='black')
     axs[1].axvline(0, color='black')
-    axs[1].set_xlabel("Moment")
-    axs[1].set_ylabel("Axial Force")
+    axs[1].set_xlabel("Moment (M)")
+    axs[1].set_ylabel("Axial Force (P)")
+    axs[1].legend(loc="best")
     plt.tight_layout()
     
     # plot demands

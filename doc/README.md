@@ -1185,6 +1185,23 @@ PM_results = my_section.run_interaction(fpc=4, fy=60, Es=29000)
 
 ## Extracting Data
 
+`fkit.section.Section.get_all_fiber_data()` - This method returns two dataframes that contain all available fiber data from moment curvature analysis. Some columns of the dataframe will be object dtype to store lists of values at each load step.
+
+* Args: 
+  * None
+* Returns:
+  * df_nodefibers - data of all node fibers. Returns none if node fibers does not exist.
+  * df_patchfibers - data of all patch fibers. Returns none if patch fibers does not exist.
+
+```python
+# extract all fiber data
+df_nodefibers, df_patchfibers = my_section.get_all_fiber_data()
+```
+
+
+
+
+
 `fkit.section.Section.get_node_fiber_data(tag)` - Return moment curvature stress/strain of a selected node fiber at each load step.
 
 * tag: int
@@ -1207,7 +1224,6 @@ PM_results = my_section.run_interaction(fpc=4, fy=60, Es=29000)
 rebar3_data = my_section.get_node_fiber_data(tag=3)
 ```
 
-
 `fkit.section.Section.get_patch_fiber_data(location)` - Return moment curvature stress/strain data of a patch fiber at each load step.
 
 * location: float or string
@@ -1215,7 +1231,7 @@ rebar3_data = my_section.get_node_fiber_data(tag=3)
   * if "top", data from top-most fiber will be reported (max y)
   * if "bottom", data from bottom-most fiber will be reported (min y)
   * if a user-specified coordinate, the program will find the nearest fiber
-* * The returned dictionary have the following keys:
+* The returned dictionary have the following keys:
     * `...["area"]` - area of patch fiber (x, y)
     * `...["centroid"]` - centroid of patch fiber (x, y)
     * `...["depth"]` - depth of node patch with respect to the topmost compression fiber
@@ -1237,11 +1253,11 @@ fiber_data = my_section.get_patch_fiber_data(location=[23.4, 14.2])
 
 
 
-`fkit.section.Section.export_data(save_folder="exported_data_fkit")` - Export data in csv format in a save_folder which will be created in the user current working directory.
+`fkit.section.Section.export_data(save_folder="fkit_result_folder")` - Export moment curvature and PM interaction analysis data in csv format. The file is stored in a save_folder which will be created in the user current working directory. 
 
 * save_folder: string (OPTIONAL)
   * name of folder where csv file will be exported
-  * default = "exported_data_fkit"
+  * default = "fkit_result_folder"
 
 ```python
 # return rebar stress/strain history of rebar with tag=3

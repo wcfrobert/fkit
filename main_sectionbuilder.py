@@ -147,20 +147,6 @@ preview_section(section10)
 
 
 
-# W_AISC_composite
-section11 = fkb.W_AISC_composite(shape="W18X71",
-                                  slab_thickness = 3.25,
-                                  slab_width = 76,
-                                  slab_gap = 3,
-                                  cover = 1,
-                                  slab_bar = [0.2, 12, 1, 0],
-                                  concrete_fiber = fiber_unconfined,
-                                  rebar_fiber = fiber_rebar,
-                                  steel_fiber = fiber_structural_steel)
-preview_section(section11)
-
-
-
 
 
 
