@@ -1,32 +1,47 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-import math
 import numpy as np
 import os
 
 
-def preview_fiber(fiber,x_limit=[-0.03, 0.03]):
+def preview_fiber(fiber,x_limit=[-0.03, 0.03], display_unit="none"):
     """
     Plot the stress-strain relationshiop of a fiber.
 
     Args:
-        fiber       NodeFiber or PatchFiber:: fiber kit patch or node fiber object
-        x_limit     (OPTIONAL) [float]:: x-axis limit for plotting. default = [-0.03, 0.03]
+        fiber           NodeFiber or PatchFiber:: fiber kit patch or node fiber object
+        x_limit         (OPTIONAL)[float]:: x-axis limit for plotting. default = [-0.03, 0.03]
+        display_unit    (OPTIONAL)str:: Whether or not to show units. This is purely for visual display and 
+                                        does not change any of the backend calculations. Default is "none"
+                                              "none": do not append any units
+                                              "us": kips, inches, ksi
+                                              "metric": N, mm, MPa
     
     Return:
         fig         Figure:: generated matplotlib figure
         
     """
+    # handle display unit
+    if display_unit == "none":
+        unit_yaxis = ""
+    elif display_unit == "us":
+        unit_yaxis = "ksi"
+    elif display_unit == "metric":
+        unit_yaxis = "MPa"
+    else:
+        raise RuntimeError("ERROR: display_unit can be either none, us, or metric")
+        
+    # plot stress and strain
     strain_x = np.linspace(x_limit[0],x_limit[1],200)
     stress_y = [fiber.stress_strain(a) for a in strain_x]
     
     fig, axs = plt.subplots()
     axs.plot(strain_x,stress_y,c="#435be2")
     
-    fig.suptitle("Fiber Stress-Strain - {}".format(fiber.name))
+    fig.suptitle("Fiber Stress-Strain Relationship - {}".format(fiber.name))
     axs.set_xlim(x_limit)
-    axs.set_xlabel("strain")
-    axs.set_ylabel("stress")
+    axs.set_xlabel("Strain")
+    axs.set_ylabel("Stress ({})".format(unit_yaxis))
     axs.xaxis.grid()
     axs.yaxis.grid()
     axs.axhline(y=0, color = "black", linestyle="-", lw = 0.8)
@@ -35,18 +50,33 @@ def preview_fiber(fiber,x_limit=[-0.03, 0.03]):
     return fig
 
 
-def compare_fibers(fibers, labels, x_limit):
+def compare_fibers(fibers, labels, x_limit, display_unit="none"):
     """
     Compare material properties of several fibers on a single plot.
     
     Args:
-        fibers          [NodeFiber or PatchFiber]:: list of fibers to visualize
-        labels          [str]:: list of label to distinguish between fibers.
-        x_limit         (OPTIONAL) [float]:: x-axis limit for plotting. default = [-0.03, 0.03]
+        fibers              [NodeFiber or PatchFiber]:: list of fibers to visualize
+        labels              [str]:: list of label to distinguish between fibers.
+        x_limit             (OPTIONAL) [float]:: x-axis limit for plotting. default = [-0.03, 0.03]
+        display_unit        (OPTIONAL)str:: Whether or not to show units. This is purely for visual display and 
+                                            does not change any of the backend calculations. Default is "none"
+                                                "none": do not append any units
+                                                "us": kips, inches, ksi
+                                                "metric": N, mm, MPa
     
     Return:
         fig             Figure:: generated matplotlib figure
     """
+    # handle display unit
+    if display_unit == "none":
+        unit_yaxis = ""
+    elif display_unit == "us":
+        unit_yaxis = "ksi"
+    elif display_unit == "metric":
+        unit_yaxis = "MPa"
+    else:
+        raise RuntimeError("ERROR: display_unit can be either none, us, or metric")
+        
     # range of strain to plot
     fig, axs = plt.subplots()
     strain_x = np.linspace(x_limit[0],x_limit[1],200)
@@ -59,8 +89,8 @@ def compare_fibers(fibers, labels, x_limit):
     # styling
     fig.suptitle("Fiber Monotonic Stress-Strain Curve")
     axs.set_xlim(x_limit)
-    axs.set_xlabel("strain")
-    axs.set_ylabel("stress")
+    axs.set_xlabel("Strain")
+    axs.set_ylabel("Stress ({})".format(unit_yaxis))
     axs.xaxis.grid()
     axs.yaxis.grid()
     axs.legend(loc="best")
@@ -104,19 +134,41 @@ def preview_section(section, show_tag=False):
     return fig
 
 
-def plot_MK(section):
+def plot_MK(section, display_unit="none"):
     """
     Plot moment curvature diagram.
     
     Args:
-        section     Section:: fiber kit section object
-        
+        section           Section:: fiber kit section object
+        display_unit      (OPTIONAL)str:: Whether or not to show units. This is purely for visual display and 
+                                          does not change any of the backend calculations. Default is "none"
+                                              "none": do not append any units
+                                              "us": kips, inches, ksi
+                                              "metric": N, mm, MPa
     Return:
         fig         Figure:: generated matplotlib figure
     """
+    # exit if no results
     if not section.MK_solved:
         raise RuntimeError("Please run moment curvature analysis before plotting")
-        
+    
+    # handle display unit
+    if display_unit == "none":
+        unit_title = ""
+        unit_yaxis = ""
+        unit_xaxis = ""
+    elif display_unit == "us":
+        unit_title = "kips"
+        unit_yaxis = "kip.in"
+        unit_xaxis = "1/in"
+    elif display_unit == "metric":
+        unit_title = "N"
+        unit_yaxis = "N.mm"
+        unit_xaxis = "1/mm"
+    else:
+        raise RuntimeError("ERROR: display_unit can be either none, us, or metric")
+    
+    # init figure
     fig, axs = plt.subplots(1,2,figsize=(16,9),gridspec_kw={'width_ratios':[1,1]})
     
     # plot meshes
@@ -130,7 +182,7 @@ def plot_MK(section):
     axs[0].scatter(section.centroid[0], section.centroid[1], c="red", marker="x",linewidth=3,s=240, zorder=3)
     
     # formatting
-    fig.suptitle("Moment Curvature Analysis (P = {})".format(section.axial), fontweight="bold", fontsize=16)
+    fig.suptitle("Fiber kit - Moment Curvature Analysis (P = {:.1f} {})".format(section.axial, unit_title), fontweight="bold", fontsize=18)
     axs[0].xaxis.grid()
     axs[0].yaxis.grid()
     axs[0].set_axisbelow(True)
@@ -144,8 +196,8 @@ def plot_MK(section):
     axs[1].yaxis.grid()
     axs[1].axhline(0, color='black')
     axs[1].axvline(0, color='black')
-    axs[1].set_xlabel("Curvature")
-    axs[1].set_ylabel("Moment")
+    axs[1].set_xlabel("Curvature ({})".format(unit_xaxis), fontsize=12)
+    axs[1].set_ylabel("Moment ({})".format(unit_yaxis), fontsize=12)
     plt.tight_layout()
     return fig
 
@@ -157,27 +209,48 @@ def plot_MK_3D(section):
     pass
 
 
-def animate_MK(section):
+def animate_MK(section, display_unit="none"):
     """
     Generate a folder of pngs for each load step. The pngs can then be stapled together
     externally into a gif. For example, using ImageMagick: "magick -delay 5 -loop 0 *.png demo.gif"
     
     Args:
-        section     Section:: fiber kit section object
+        section           Section:: fiber kit section object
+        display_unit      (OPTIONAL)str:: Whether or not to show units. This is purely for visual display and 
+                                          does not change any of the backend calculations. Default is "none"
+                                              "none": do not append any units
+                                              "us": kips, inches, ksi
+                                              "metric": N, mm, MPa
 
     Return:
         None
     """
+    # set up animation folder
     plt.ioff()
     if not section.MK_solved:
         raise RuntimeError("Please run moment curvature analysis before animating")
-        
     if not section.folder_created:
         section.create_output_folder()
-    
     N_frame = len(section.curvature)
     save_dir = os.path.join(section.output_dir, "animate")
     os.makedirs(save_dir)
+    
+    # handle display unit
+    if display_unit == "none":
+        unit_title = ""
+        unit_yaxis = ""
+        unit_xaxis = ""
+    elif display_unit == "us":
+        unit_title = "kips"
+        unit_yaxis = "kip.in"
+        unit_xaxis = "1/in"
+    elif display_unit == "metric":
+        unit_title = "N"
+        unit_yaxis = "N.mm"
+        unit_xaxis = "1/mm"
+    else:
+        raise RuntimeError("ERROR: display_unit can be either none, us, or metric")
+    
     
     for i in range(N_frame):  
         print("\tcreating frame {}...".format(i))
@@ -194,7 +267,7 @@ def animate_MK(section):
         axs[0].scatter(section.centroid[0], section.centroid[1], c="red", marker="x",linewidth=3,s=240, zorder=3)
         
         # formatting
-        fig.suptitle("Moment Curvature Analysis (P = {})".format(section.axial))
+        fig.suptitle("Fiber kit - Moment Curvature Analysis (P = {:.1f} {})".format(section.axial, unit_title), fontweight="bold", fontsize=18)
         axs[0].xaxis.grid()
         axs[0].yaxis.grid()
         axs[0].set_axisbelow(True)
@@ -208,8 +281,8 @@ def animate_MK(section):
         axs[1].yaxis.grid()
         axs[1].axhline(0, color='black')
         axs[1].axvline(0, color='black')
-        axs[1].set_xlabel("Curvature")
-        axs[1].set_ylabel("Moment")
+        axs[1].set_xlabel("Curvature ({})".format(unit_xaxis), fontsize=12)
+        axs[1].set_ylabel("Moment ({})".format(unit_yaxis), fontsize=12)
         plt.tight_layout()
         
         filename = os.path.join(save_dir,"frame{:04d}.png".format(i))
@@ -217,21 +290,41 @@ def animate_MK(section):
         
 
 
-def plot_PM(section, P=None, M=None):
+def plot_PM(section, P=None, M=None, display_unit="none"):
     """
     Plot ACI 318 PM interaction surface (both nominal and factored).
     
     Args:
-        section     Section:: fiber kit section object
-        P           (OPTIONAL) (float):: list of axial demands to plot
-        M           (OPTIONAL) (float):: list of moment demand to plot
+        section         Section:: fiber kit section object
+        P               (OPTIONAL) (float):: list of axial demands to plot
+        M               (OPTIONAL) (float):: list of moment demand to plot
+        display_unit    (OPTIONAL)str:: Whether or not to show units. This is purely for visual display and 
+                                          does not change any of the backend calculations. Default is "none"
+                                              "none": do not append any units
+                                              "us": kips, inches, ksi
+                                              "metric": N, mm, MPa
         
     Return: 
         fig         Figure:: generated matplotlib figure
     """
+    # exit if no results available
     if not section.PM_solved:
         raise RuntimeError("Please run interaction analysis before plotting")
-        
+    
+    # handle display unit
+    if display_unit == "none":
+        unit_yaxis = ""
+        unit_xaxis = ""
+    elif display_unit == "us":
+        unit_yaxis = "kips"
+        unit_xaxis = "k.in"
+    elif display_unit == "metric":
+        unit_yaxis = "N"
+        unit_xaxis = "N.mm"
+    else:
+        raise RuntimeError("ERROR: display_unit can be either none, us, or metric")
+    
+    # init figure
     fig, axs = plt.subplots(1,2,figsize=(16,9),gridspec_kw={'width_ratios':[1,1]})
     
     # plot meshes
@@ -245,7 +338,7 @@ def plot_PM(section, P=None, M=None):
     axs[0].scatter(section.centroid[0], section.centroid[1], c="red", marker="x",linewidth=2,s=300, zorder=3)
     
     # formatting
-    fig.suptitle("Section Interaction Surface (ACI-318)", fontweight="bold", fontsize=16)
+    fig.suptitle("Section Interaction Diagram (ACI 318)", fontweight="bold", fontsize=18)
     axs[0].xaxis.grid()
     axs[0].yaxis.grid()
     axs[0].set_axisbelow(True)
@@ -292,8 +385,8 @@ def plot_PM(section, P=None, M=None):
     axs[1].yaxis.grid()
     axs[1].axhline(0, color='black')
     axs[1].axvline(0, color='black')
-    axs[1].set_xlabel("Moment (M)")
-    axs[1].set_ylabel("Axial Force (P)")
+    axs[1].set_xlabel("Moment ({})".format(unit_xaxis), fontsize=12)
+    axs[1].set_ylabel("Axial Force ({})".format(unit_yaxis), fontsize=12)
     axs[1].legend(loc="best")
     plt.tight_layout()
     
@@ -307,16 +400,37 @@ def plot_PM(section, P=None, M=None):
 
 
 
-def plot_Icr(section):
+def plot_Icr(section, display_unit="none"):
     """
     Plot the section's cracked moment of inertia at each load step as a ratio of Ig. 
     
     Args:
-        section         Section:: fiber kit section object
+        section           Section:: fiber kit section object
+        display_unit      (OPTIONAL)str:: Whether or not to show units. This is purely for visual display and 
+                                          does not change any of the backend calculations. Default is "none"
+                                              "none": do not append any units
+                                              "us": kips, inches, ksi
+                                              "metric": N, mm, MPa
     
     Return:
         fig             Figure:: generated matplotlib figure
     """
+    # handle display unit
+    if display_unit == "none":
+        unit_title = ""
+        unit_yaxis = ""
+        unit_xaxis = ""
+    elif display_unit == "us":
+        unit_title = "kips"
+        unit_yaxis = "kip.in"
+        unit_xaxis = "1/in"
+    elif display_unit == "metric":
+        unit_title = "N"
+        unit_yaxis = "N.mm"
+        unit_xaxis = "1/mm"
+    else:
+        raise RuntimeError("ERROR: display_unit can be either none, us, or metric")
+    
     # set up custom subplots
     fig = plt.figure(figsize=(16,9), dpi=200)
     gs = fig.add_gridspec(2,2)
@@ -343,7 +457,7 @@ def plot_Icr(section):
     axs1.scatter(section.xc_cracked[-1], section.yc_cracked[-1], c="red", marker="x",linewidth=2, s=240, zorder=3)
     
     # formatting
-    fig.suptitle("Cracked Moment of Inertia", fontweight="bold", fontsize=16)
+    fig.suptitle("Cracked Moment of Inertia Progression (P = {:.1f} {})".format(section.axial, unit_title), fontweight="bold", fontsize=18)
     axs1.grid()
     axs1.set_axisbelow(True)
     axs1.set_aspect('equal', 'box')
@@ -351,13 +465,13 @@ def plot_Icr(section):
     axs2.grid()
     axs2.axhline(0, color='black')
     axs2.axvline(0, color='black')
-    axs2.set_ylabel("Moment")
+    axs2.set_ylabel("Moment ({})".format(unit_yaxis), fontsize=12)
     
     axs3.grid()
     axs3.axhline(0, color='black')
     axs3.axvline(0, color='black')
-    axs3.set_ylabel("Icr / Ig")
-    axs3.set_xlabel("Curvature")
+    axs3.set_ylabel("Icr / Ig", fontsize=12)
+    axs3.set_xlabel("Curvature ({})".format(unit_xaxis), fontsize=12)
     axs3.set_ylim([0,1.1])
     
     plt.tight_layout()

@@ -1200,8 +1200,6 @@ df_nodefibers, df_patchfibers = my_section.get_all_fiber_data()
 
 
 
-
-
 `fkit.section.Section.get_node_fiber_data(tag)` - Return moment curvature stress/strain of a selected node fiber at each load step.
 
 * tag: int
@@ -1270,19 +1268,39 @@ my_section.export_data(save_folder="exported_results")
 
 ## Visualizations
 
-`fkit.plotter.preview_fiber(fiber, xlim=[-0.03, 0.03])` - Plot fiber stress-strain relationship. Returns the generated matplotlib figure.
+`fkit.plotter.preview_fiber(fiber, xlim=[-0.03, 0.03], display_unit="none")` - Plot fiber stress-strain relationship. Returns the generated matplotlib figure.
 
 * fiber: fkit.NodeFiber object or fkit.PatchFiber object
   * fiber object defined by user
 * xlim: [float, float] (OPTIONAL)
   * lower and upper strain limit for plotting purposes
   * default = [-0.03, 0.03]
-
+* display_unit: str (OPTIONAL)
+  * Whether or not to show units. This is purely for visual display and does not change any of the backend calculations. Default is "none".
+  * "none": do not append any units
+  * "us": kips, inches, ksi
+  * "metric": N, mm, MPa
 
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/previewfiber.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
+
+
+`fkit.plotter.compare_fibers(fiber, labels, xlim=[-0.03, 0.03], display_unit="none")` - Plot stress-strain relationship of several fibers on the same plot. Returns the generated matplotlib figure.
+
+* fibers: [fkit.NodeFiber object] or [fkit.PatchFiber object]
+  * list of fiber object to be compared
+* label: [str]
+  * list of labels to distinguish between fibers in the legends
+* xlim: [float, float] (OPTIONAL)
+  * lower and upper strain limit for plotting purposes
+  * default = [-0.03, 0.03]
+* display_unit: str (OPTIONAL)
+  * Whether or not to show units. This is purely for visual display and does not change any of the backend calculations. Default is "none".
+  * "none": do not append any units
+  * "us": kips, inches, ksi
+  * "metric": N, mm, MPa
 
 
 
@@ -1303,47 +1321,66 @@ my_section.export_data(save_folder="exported_results")
 
 
 
-`fkit.plotter.plot_MK(section)` - Plot moment curvature analysis results. Returns the generated matplotlib figure.
+`fkit.plotter.plot_MK(section, display_unit="none")` - Plot moment curvature analysis results. Returns the generated matplotlib figure.
 
 * section: fkit.Section object
   * section object defined by user
+* display_unit: str (OPTIONAL)
+  * Whether or not to show units. This is purely for visual display and does not change any of the backend calculations. Default is "none".
+  * "none": do not append any units
+  * "us": kips, inches, ksi
+  * "metric": N, mm, MPa
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
 
 
-`fkit.plotter.plot_Icr(section)` - Plot cracked moment of inertia alongside moment curvature results. Returns the generated matplotlib figure.
+`fkit.plotter.plot_Icr(section, display_unit="none")` - Plot cracked moment of inertia alongside moment curvature results. Returns the generated matplotlib figure.
 
 * section: fkit.Section object
   * section object defined by user
+* display_unit: str (OPTIONAL)
+  * Whether or not to show units. This is purely for visual display and does not change any of the backend calculations. Default is "none".
+  * "none": do not append any units
+  * "us": kips, inches, ksi
+  * "metric": N, mm, MPa
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/Icr.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
 
 
-`fkit.plotter.animate_MK(section)` -  Generate a folder in the user's current working directory containing pngs of each load step. The pngs can then be stapled together to create a gif.
+`fkit.plotter.animate_MK(section, display_unit="none")` -  Generate a folder in the user's current working directory containing pngs of each load step. The pngs can then be stapled together to create a gif.
 
 * section: fkit.Section object
   * section object defined by user
+* display_unit: str (OPTIONAL)
+  * Whether or not to show units. This is purely for visual display and does not change any of the backend calculations. Default is "none".
+  * "none": do not append any units
+  * "us": kips, inches, ksi
+  * "metric": N, mm, MPa
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo.gif?raw=true" alt="demo" style="width: 60%;" />
 </div>
 
 
-`fkit.plotter.plot_PM(section, P=None, M=None)` - Plot PM interaction surface. Returns the generated matplotlib figure.
+`fkit.plotter.plot_PM(section, P=None, M=None, display_unit="none")` - Plot PM interaction surface. Returns the generated matplotlib figure.
 
 * section: fkit.Section object
   * section object defined by user
 * P: [float] (OPTIONAL)
   * list of axial demands for plotting
   * default = None
-
 * M: [float] (OPTIONAL)
   * list of moment demands for plotting (same length as P)
   * default = None
+* display_unit: str (OPTIONAL)
+  * Whether or not to show units. This is purely for visual display and does not change any of the backend calculations. Default is "none".
+  * "none": do not append any units
+  * "us": kips, inches, ksi
+  * "metric": N, mm, MPa
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo3.png?raw=true" alt="demo" style="width: 60%;" />

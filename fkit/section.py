@@ -529,6 +529,7 @@ class Section:
                 "fibertype": [],
                 "x": [],
                 "y": [],
+                "area": [],
                 "depth": [],
                 "ecc_x": [],
                 "ecc_y": [],
@@ -537,12 +538,15 @@ class Section:
                 "force": [],
                 "momentx": [],
                 "momenty": [],
+                "default_color": [],
+                "color_list": [],
                 }
             for fiber in self.node_fibers:
                 data_dict["tag"].append(fiber.tag)
                 data_dict["fibertype"].append(fiber.name)
                 data_dict["x"].append(fiber.coord[0])
                 data_dict["y"].append(fiber.coord[1])
+                data_dict["area"].append(fiber.area)
                 data_dict["depth"].append(fiber.depth)
                 data_dict["ecc_x"].append(fiber.ecc[0])
                 data_dict["ecc_y"].append(fiber.ecc[1])
@@ -553,6 +557,8 @@ class Section:
                 data_dict["force"].append(force_data)
                 data_dict["momentx"].append([fiber.ecc[1] * x for x in force_data])
                 data_dict["momenty"].append([fiber.ecc[0] * x for x in force_data])
+                data_dict["default_color"].append(fiber.default_color)
+                data_dict["color_list"].append(fiber.color_list)
                 
             df_nodefibers = pd.DataFrame(data_dict)
             df_nodefibers = df_nodefibers.astype({
@@ -567,7 +573,9 @@ class Section:
                 "strain": "object",
                 "force": "object",
                 "momentx": "object",
-                "momenty": "object"
+                "momenty": "object",
+                "default_color": "string",
+                "color_list": "object"
             })
         
         # patch fibers
@@ -586,6 +594,8 @@ class Section:
                 "force": [],
                 "momentx": [],
                 "momenty": [],
+                "default_color": [],
+                "color_list": [],
                 }
             for fiber in self.patch_fibers:
                 data_dict["tag"].append(fiber.tag)
@@ -601,6 +611,8 @@ class Section:
                 data_dict["force"].append(force_data)
                 data_dict["momentx"].append([fiber.ecc[1] * x for x in force_data])
                 data_dict["momenty"].append([fiber.ecc[0] * x for x in force_data])
+                data_dict["default_color"].append(fiber.default_color)
+                data_dict["color_list"].append(fiber.color_list)
             df_patchfibers = pd.DataFrame(data_dict)
             df_patchfibers = df_patchfibers.astype({
                 "tag": "int32",
@@ -613,7 +625,9 @@ class Section:
                 "strain": "object",
                 "force": "object",
                 "momentx": "object",
-                "momenty": "object"
+                "momenty": "object",
+                "default_color": "string",
+                "color_list": "object"
             })
         
         return df_nodefibers, df_patchfibers
