@@ -1,15 +1,11 @@
 """
-SectionBuilder.
-
-functions to parametrically define commonly used sections
+SectionBuilder - functions to parametrically define commonly used sections
 """
 import fiberkit.section
 import math
 import numpy as np
 import pandas as pd
 import os
-
-
 
 
 def rectangular(width, height, cover, top_bar, bot_bar, concrete_fiber, steel_fiber, 

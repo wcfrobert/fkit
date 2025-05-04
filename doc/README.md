@@ -642,7 +642,7 @@ my_section.add_bar_group(xo=1.5, yo=1.5, b=17, h=17, nx=3, ny=3,
 
 
 
-`fiberkit.section.Section.mesh(rotate=0)` finish section creation and mesh. This method modifies the `Section` object internally and does not return anything.
+`fiberkit.section.Section.mesh(rotate=0)` Finalize section definition by calculating section properties and updates fiber locations with respect to section centroid. This method modifies the `Section` object internally and does not return anything. Please note as of fkit v2.0.0, the user no longer need to call this method unless they want to rotate the section.
 
 * rotate: float (OPTIONAL)
   * rotate the section counter-clockwise by a user-specified angle (in degrees)

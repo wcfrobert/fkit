@@ -81,6 +81,9 @@ def preview_section(section, show_tag=False):
     Return:
         fig             Figure:: generated matplotlib figure
     """
+    # mesh just in case it hasn't occured yet
+    section.mesh()
+    
     # initialize
     fig, axs = plt.subplots(figsize=(11,8.5))
     for f in section.node_fibers:
@@ -116,7 +119,7 @@ def plot_MK(section):
     """
     # exit if no results
     if not section.MK_solved:
-        raise RuntimeError("Please run moment curvature analysis before plotting")
+        raise RuntimeError("ERROR: Please run moment curvature analysis before plotting")
     
     # init figure
     fig, axs = plt.subplots(1,2,figsize=(16,9),gridspec_kw={'width_ratios':[1,1]})
@@ -171,11 +174,11 @@ def animate_MK(section):
         None
     """
     # set up animation folder
-    plt.ioff()
     if not section.MK_solved:
-        raise RuntimeError("Please run moment curvature analysis before animating")
+        raise RuntimeError("ERROR: Please run moment curvature analysis before creating animation")
     if not section.folder_created:
         section.create_output_folder()
+    plt.ioff()
     N_frame = len(section.curvature)
     save_dir = os.path.join(section.output_dir, "animate")
     os.makedirs(save_dir)
@@ -232,7 +235,7 @@ def plot_PM(section, P=None, M=None):
     """
     # exit if no results available
     if not section.PM_solved:
-        raise RuntimeError("Please run interaction analysis before plotting")
+        raise RuntimeError("ERROR: Please run interaction analysis before plotting")
     
     # init figure
     fig, axs = plt.subplots(1,2,figsize=(16,9),gridspec_kw={'width_ratios':[1,1]})
@@ -258,34 +261,36 @@ def plot_PM(section, P=None, M=None):
     # indices: [P,Mx,NA_depth,My,resistance_factor,phi_P,phi_Mx,phi_My]
     M0 = [x for x in section.PM_surface[0][1]]
     P0 = [-x for x in section.PM_surface[0][0]]  # flipped sign so +P is compression
-    M180 = [-x for x in section.PM_surface[180][1]] # flipped sign because 180 deg is on left side of plot
+    M180 = [x for x in section.PM_surface[180][1]]
     P180 = [-x for x in section.PM_surface[180][0]] # flipped sign so +P is compression
     axs[1].plot(M0, P0, label="nominal",linestyle="-",c="blue", marker=None)
     axs[1].plot(M180, P180, linestyle="-",c="blue", marker=None)
     
-    
-    # factored interaction surface
-    # split factored curve at 0.8Po
+    # find index where factored curve reaches 0.8Po
     Po = min(section.PM_surface[0][5])
     for i in range(len(section.PM_surface[0][5])):
         if section.PM_surface[0][5][i] < 0.8*Po:
             split_index = i
             break
+    
+    # plot factored curve without the hat
     M0_factored = [x for x in section.PM_surface[0][6][:split_index]]
     P0_factored = [-x for x in section.PM_surface[0][5][:split_index]]
-    M180_factored = [-x for x in section.PM_surface[180][6][:split_index]]
+    M180_factored = [x for x in section.PM_surface[180][6][:split_index]]
     P180_factored = [-x for x in section.PM_surface[180][5][:split_index]]
     
-    # close cap
+    # close off the curve at the top
     M180_factored.append(M0_factored[-1])
     P180_factored.append(P0_factored[-1])
-    axs[1].plot(M0_factored, P0_factored, label="factored",linestyle="-",c="red")
-    axs[1].plot(M180_factored, P180_factored, linestyle="-",c="red")
+    
+    # plot factored interaction surface
+    axs[1].plot(M0_factored, P0_factored, label="factored", linestyle="-", c="red")
+    axs[1].plot(M180_factored, P180_factored, linestyle="-", c="red")
     
     # plot peak above 0.8Po with dotted line
     M0_factored_top = [x for x in section.PM_surface[0][6][split_index-1:]]
     P0_factored_top = [-x for x in section.PM_surface[0][5][split_index-1:]]
-    M180_factored_top = [-x for x in section.PM_surface[180][6][split_index-1:]]
+    M180_factored_top = [x for x in section.PM_surface[180][6][split_index-1:]]
     P180_factored_top = [-x for x in section.PM_surface[180][5][split_index-1:]]
     axs[1].plot(M0_factored_top, P0_factored_top, linestyle="--",c="red")
     axs[1].plot(M180_factored_top, P180_factored_top, linestyle="--",c="red")
@@ -320,6 +325,10 @@ def plot_Icr(section):
     Return:
         fig             Figure:: generated matplotlib figure
     """
+    # exit if no results
+    if not section.Icr_solved:
+        raise RuntimeError("ERROR: Please run cracked moment of inertia analysis before plotting")
+    
     # set up custom subplots
     fig = plt.figure(figsize=(16,9), dpi=200)
     gs = fig.add_gridspec(2,2)

@@ -40,7 +40,7 @@ class Section:
         self.neutral_axis = []              # list of neutral axis depth at each load step
         self.momentx = []                   # list of major-axis moment at each load step
         self.momenty = []                   # list of minor-axis moment at each load step (0 for symmetric sections)
-        self.K_tangent = []                 # list of moment-curvature tangent slope at each load step
+        self.K_tangent = []                 # list of moment-curvature tangent slope at each load step ("EI")
         self.axial = 0                      # user-specified axial force for moment-curvature analysis
         self.df_MK_results = None           # dataframe containing all moment curvature analysis results
         self.Ig = None                      # gross moment of inertia (ignoring all node fibers)
@@ -190,20 +190,21 @@ class Section:
         self.area = sumA
         self.centroid = [xA/sumA, yA/sumA]
 
-        # rotate section
-        rad = rotate * math.pi / 180
-        T = np.array([
-            [math.cos(rad), -math.sin(rad)],
-            [math.sin(rad), math.cos(rad)]
-            ])
-        self.centroid = T @ self.centroid
-        self.centroid = list(self.centroid)
-        for f in self.patch_fibers:
-            f.centroid = T @ f.centroid
-            for i in range(len(f.vertices)):
-                f.vertices[i] = T @ f.vertices[i]
-        for f in self.node_fibers:
-            f.coord = T @ f.coord
+        # rotate section if applicable
+        if not math.isclose(rotate, 0):
+            rad = rotate * math.pi / 180
+            T = np.array([
+                [math.cos(rad), -math.sin(rad)],
+                [math.sin(rad), math.cos(rad)]
+                ])
+            self.centroid = T @ self.centroid
+            self.centroid = list(self.centroid)
+            for f in self.patch_fibers:
+                f.centroid = T @ f.centroid
+                for i in range(len(f.vertices)):
+                    f.vertices[i] = T @ f.vertices[i]
+            for f in self.node_fibers:
+                f.coord = T @ f.coord
         
         # update depth
         y = []
@@ -269,6 +270,25 @@ class Section:
             As curvature increases, some minor-axis moment must develop to maintain equilibrium and to keep the 
             neutral-axis in the same user-specified orientation.
         """
+        # delete old results if user already ran another analysis before
+        if self.MK_solved:
+            print("Deleting results from previous analysis...")
+            self.curvature = []
+            self.neutral_axis = []
+            self.momentx = []
+            self.momenty = []
+            self.K_tangent = []
+            self.df_MK_results = None
+            self.MK_solved = False
+            self.Ig = None
+            self.Icr = None
+            self.xc_cracked = None
+            self.yc_cracked = None
+            self.Icr_solved = False
+        
+        # mesh just in case it hasn't occured yet
+        self.mesh()
+        
         # use root finding algorithm to find neutral axis depth
         self.axial = P
         phi_list = np.linspace(0, phi_target, num=N_step)
@@ -418,6 +438,9 @@ class Section:
                                 data_dict["momentx"] - moment about x-axis contribution at each load step
                                 data_dict["momenty"] - moment about y-axis contribution at each load step
         """
+        if not self.MK_solved:
+            raise RuntimeError("ERROR: Please run moment curvature analysis before extracting fiber data")
+        
         strain_history = self.node_fibers[tag].strain
         stress_history = [self.node_fibers[tag].stress_strain(x) for x in strain_history]
         force_history = [self.node_fibers[tag].area * x for x in stress_history]
@@ -459,6 +482,9 @@ class Section:
                                 data_dict["momentx"] - moment about x-axis contribution at each load step
                                 data_dict["momenty"] - moment about y-axis contribution at each load step
         """
+        if not self.MK_solved:
+            raise RuntimeError("ERROR: Please run moment curvature analysis before extracting fiber data")
+        
         # find tag of closest fiber
         tag = None
         if location == "top":
@@ -520,6 +546,9 @@ class Section:
             df_nodefibers       DataFrame:: all node fiber data
             df_patchfibers      DataFrame:: all patch fiber data
         """
+        if not self.MK_solved:
+            raise RuntimeError("ERROR: Please run moment curvature analysis before extracting fiber data")
+        
         # node fibers
         if len(self.node_fibers) == 0:
             df_nodefibers = None
@@ -757,11 +786,23 @@ class Section:
             4.) repeat step 1-3 with section rotated 180 degrees to get the other side
     
         Note:
-            Internally within fkit, the sign convention is +P = tension, -P = compression
-            This is opposite of what's commonly used within the concrete design industry.
-            For plotting and exporting purposes, the sign on P is flipped. 
-            But within this object, the +P = tension convention is followed
+            Sign convention:
+                +P = tension, -P = compression
+                +Mx = compresses the bottom fibers, -Mx = compresses the top fibers
+            
+            In concrete design, tension is always plotted on the -Y axis. We will flip sign for P for plotting.
+            But for all computation, the sign convention above must be followed!
         """
+        # delete old results if user already ran another analysis before
+        if self.PM_solved:
+            print("Deleting results from previous analysis...")
+            self.PM_surface = {}
+            self.df_PM_results = None
+            self.PM_solved = False
+
+        # mesh just in case it hasn't occured yet
+        self.mesh()
+        
         # rectangular stress block parameter per ACI
         alpha = 0.85
         
@@ -785,14 +826,15 @@ class Section:
         # calculate rebar yield strain
         ey = fy / Es
         
-        # generate a good distribution of neutral axis depths
-        NA_depth = self.get_appropriate_NA(fy, fpc, Es, beta, alpha)
+        # generate 300 neutral axis depths from 0 to 10*section depth
+        N_PTS = 300
+        NA_depth = list(np.linspace(0.000001, 10*self.depth, N_PTS))
         
         # start PM interaction analysis        
         time_start = time.time()
-        self.PM_surface[0] = self.get_PM_data(NA_depth, fpc, fy, Es, ey, alpha, beta)
+        self.PM_surface[0] = self.get_PM_data(NA_depth, fpc, fy, Es, ey, alpha, beta, 0)
         self.mesh(rotate=180)
-        self.PM_surface[180] = self.get_PM_data(NA_depth, fpc, fy, Es, ey, alpha, beta)
+        self.PM_surface[180] = self.get_PM_data(NA_depth, fpc, fy, Es, ey, alpha, beta, 180)
         
         # restore to original position
         self.mesh(rotate=180) 
@@ -801,8 +843,9 @@ class Section:
         print("PM interaction analysis per ACI 318 completed. Elapsed time: {:.2f} seconds\n".format(time_end - time_start))
         
         # compile a result_dict to return
+        # indices: [P,Mx,NA_depth,My,resistance_factor, phi_P, phi_Mx, phi_My]
         result_dict = dict()
-        result_dict["Rotation"] = [0 for a in self.PM_surface[0][0]] + [180 for a in self.PM_surface[0][0]]
+        result_dict["Rotation"] = [0 for a in self.PM_surface[0][0]] + [180 for a in self.PM_surface[180][0]]
         result_dict["P"] = self.PM_surface[0][0] + self.PM_surface[180][0]
         result_dict["Mx"] = self.PM_surface[0][1] + self.PM_surface[180][1]
         result_dict["My"] = self.PM_surface[0][3] + self.PM_surface[180][3]
@@ -815,80 +858,23 @@ class Section:
         
         return self.df_PM_results.copy()
         
-           
-    def get_appropriate_NA(self, fy, fpc, Es, beta, alpha):
+    
+    def get_PM_data(self, NA_depth, fpc, fy, Es, ey, alpha, beta, rotation):
         """
-        Helper method called in run_PM_interaction. Essentially this helps distribute the points
-        along the interaction curve better. Generate neutral axis depths in 4 distinct regions
-            1. pure tension to pure bending
-            2. pure bending to fs = fy
-            3. fs=fy to fs=0
-            4. fs=0 to pure compression
+        Helper method called by run_PM_interaction() to get (P, Mx, My) points at various neutral axis depths.
         """
-        # find rebar with largest depth
+        # find largest depth of rebar
         greatest_depth = 0
         for f in self.node_fibers:
             if f.depth > greatest_depth:
                 greatest_depth = f.depth
         
-        # c where fs = fy
-        ey = fy / Es
-        c_fsfy = (0.003)/(0.003+ey) * greatest_depth
-        
-        # c where fs = 0
-        c_fs0 = greatest_depth
-        
-        # c where section in pure bending
-        # root finding usually can't get exactly 0 due to fineness of mesh
-        # instead, let's interpolate linearly P and NA
-        def root_func(c_guess):
-            sumF=0
-            for f in self.patch_fibers:
-                F,_,_ = f.interaction_ACI(beta*c_guess, alpha*fpc) 
-                sumF += F
-            for f in self.node_fibers:
-                F,_,_ = f.interaction_ACI(c_guess, fy, fpc, Es) 
-                sumF += F
-            return sumF
-        
-        increment = self.depth/100
-        is_net_tension = True
-        c_list = []
-        P_list = []
-        c_current = increment
-        while is_net_tension:
-            P = root_func(c_current)
-            P_list.append(P)
-            c_list.append(c_current)
-            c_current += increment
-            if P < 0:
-                is_net_tension = False
-        
-        c_pure_bending = c_list[-2] + (c_list[-1] - c_list[-2])/(P_list[-2] - P_list[-1]) * P_list[-2]
-        
-        # create NA points
-        NA_depths1 = list(np.linspace(0.01, c_pure_bending, 10))
-        NA_depths2 = list(np.linspace(c_pure_bending, c_fsfy, 10))
-        NA_depths3 = list(np.linspace(c_fsfy, c_fs0, 10))
-        NA_depths4 = list(np.linspace(c_fs0, 1.25*self.depth, 5))
-        NA_depth = NA_depths1 + NA_depths2 + NA_depths3 + NA_depths4 + [3*self.depth]
-        return NA_depth
-    
-    
-    def get_PM_data(self, NA_depth, fpc, fy, Es, ey, alpha, beta):
-        """
-        Helper method used during PM Interaction analysis. Called by run_PM_interaction()
-        to get (P, Mx, My) points at various neutral axis depths.
-        """
-        P = []
-        Mx = []
-        My = []
-        resistance_factor = []
+        # loop through neutral axis from 0 to 10*section depth
+        P, Mx, My, resistance_factor = [], [], [], []
         for c in NA_depth:
             sumF = 0
             sumMx = 0
             sumMy = 0
-            greatest_depth = 0
             for f in self.patch_fibers:
                 F,Mxi,Myi = f.interaction_ACI(beta*c, alpha*fpc) 
                 sumF += F
@@ -899,12 +885,16 @@ class Section:
                 sumF += F
                 sumMx += Mxi
                 sumMy += Myi
-                if f.depth > greatest_depth:
-                    greatest_depth = f.depth
+            
+            # why is there a sign flip below?
+            # When conducting a PM analysis, we fix top fiber at compression strain of -0.003. 
+            # Based on the sign convention system, this means top fiber is compression => +Mx
+            # but interaction_ACI() always returns +ve, so we need to flip to match our sign convention.
+            sumMx = -sumMx
+            sumMy = -sumMy
             
             # calculate phi factor per ACI
             et = 0.003*(greatest_depth - c)/c
-            
             if et>=ey+0.003:
                 phi = 0.9
             elif et>=ey and et<ey+0.003:
@@ -912,9 +902,18 @@ class Section:
             elif et<ey:
                 phi = 0.65
                 
+            # Mx, My above are with respect to a rotated axes. Convert back to the original un-rotated basis
+            rad = rotation * math.pi / 180
+            T = np.array([
+                [math.cos(rad), -math.sin(rad)],
+                [math.sin(rad), math.cos(rad)]
+                ])
+            sumMx_rotated, sumMy_rotated = T @ np.array([sumMx, sumMy])
+            
+            # save PM at this neutral axis depth and repeat
             P.append(sumF)
-            Mx.append(sumMx)
-            My.append(sumMy)
+            Mx.append(sumMx_rotated)
+            My.append(sumMy_rotated)
             resistance_factor.append(phi)
             
         phi_P = [a*b for a,b in zip(resistance_factor,P)]
@@ -977,6 +976,8 @@ class Section:
         if self.PM_solved:
             filename = os.path.join(self.output_dir, "PM_interaction.csv")
             self.df_PM_results.to_csv(filename)
+            
+            
                 
 
 
