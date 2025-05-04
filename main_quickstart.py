@@ -1,5 +1,4 @@
-# import fkit
-import fkit
+import fiberkit as fkit
 
 # define concrete and steel fibers
 fiber_concrete = fkit.patchfiber.Hognestad(fpc=4, take_tension=True)
@@ -25,9 +24,9 @@ Icr_results = section1.calculate_Icr(Es=29000, Ec=3605)
 PM_results = section1.run_PM_interaction(fpc=4, fy=60, Es=29000)
 
 # plot results
-fkit.plotter.plot_MK(section1, display_unit="us")
-fkit.plotter.plot_PM(section1, display_unit="us")
-fkit.plotter.plot_Icr(section1, display_unit="us")
+fkit.plotter.plot_MK(section1)
+fkit.plotter.plot_PM(section1)
+fkit.plotter.plot_Icr(section1)
 
 
 

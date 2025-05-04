@@ -3,7 +3,7 @@ SectionBuilder.
 
 functions to parametrically define commonly used sections
 """
-import fkit.section
+import fiberkit.section
 import math
 import numpy as np
 import pandas as pd
@@ -33,7 +33,7 @@ def rectangular(width, height, cover, top_bar, bot_bar, concrete_fiber, steel_fi
                             OPTIONAL: default = 0.5
     """
     # create section
-    sec = fkit.section.Section()
+    sec = fiberkit.section.Section()
 
     # parameters used to create square mesh
     n_baseline = 36
@@ -84,7 +84,7 @@ def rectangular_confined(width, height, cover, top_bar, bot_bar,
                             OPTIONAL: default = 0.5
     """
     # create section
-    sec = fkit.section.Section()
+    sec = fiberkit.section.Section()
     
     # parameters used to create square mesh
     n_baseline = 36
@@ -150,7 +150,7 @@ def circular(diameter, cover, N_bar, A_bar,
                             OPTIONAL: default = 0.5
     """
     # create section
-    sec = fkit.section.Section()
+    sec = fiberkit.section.Section()
 
     n_baseline = 68
 
@@ -233,7 +233,7 @@ def flanged(bw, bf, h, tf, cover, bot_bar, top_bar, slab_bar,
                             OPTIONAL: default = 0.5
     """
     # create section
-    sec = fkit.section.Section()
+    sec = fiberkit.section.Section()
     
     # parameters used to create square mesh
     n_baseline = 48
@@ -321,7 +321,7 @@ def wall(width, length, cover, wall_bar,
                                 OPTIONAL: default = 0.5
     """
     # create section
-    sec = fkit.section.Section()
+    sec = fiberkit.section.Section()
     
     # wall patch
     sec.add_patch(xo=-0.5*width, yo=-0.5*length, b=width ,h=length, 
@@ -364,7 +364,7 @@ def wall_BE(width, length, cover, BE_length, wall_bar, BE_bar,
                                 OPTIONAL: default = 0.5
     """
     # create section
-    sec = fkit.section.Section()
+    sec = fiberkit.section.Section()
     
     # wall patch
     sec.add_patch(xo=-0.5*width, yo=-0.5*length+BE_length, b=width ,h=(length-2*BE_length), 
@@ -443,7 +443,7 @@ def wall_layered(width1, width2, length, cover, wall_bar1, wall_bar2,
                                 OPTIONAL: default = 0.5
     """
     # create section
-    sec = fkit.section.Section()
+    sec = fiberkit.section.Section()
     
     # wall patch
     sec.add_patch(xo=-width1, yo=-0.5*length, b=width1 ,h=length, 
@@ -490,7 +490,7 @@ def wall_speedcore(length, width, steel_thickness,
                                 OPTIONAL: default = 0.5
     """
     # create section
-    sec = fkit.section.Section()
+    sec = fiberkit.section.Section()
     
     
     # core fibers
@@ -529,7 +529,7 @@ def wide_flange(bf, d, tw, tf, steel_fiber, mesh_nx=0.5, mesh_ny=0.5):
                             OPTIONAL: default = 0.5
     """
     # create section
-    sec = fkit.section.Section()
+    sec = fiberkit.section.Section()
 
     # flanges
     sec.add_patch(xo=-bf/2, yo=-d/2, b=bf ,h=tf, 

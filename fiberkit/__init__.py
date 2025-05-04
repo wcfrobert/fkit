@@ -8,8 +8,8 @@ __author__ = "Robert Wang"
 __license__ = "MIT"
 
 
-import fkit.nodefiber
-import fkit.patchfiber
-from fkit.section import Section
-import fkit.sectionbuilder
-import fkit.plotter
+import fiberkit.nodefiber
+import fiberkit.patchfiber
+from fiberkit.section import Section
+import fiberkit.sectionbuilder
+import fiberkit.plotter
