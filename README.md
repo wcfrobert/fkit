@@ -15,11 +15,7 @@ Define fiber material properties, create section, perform moment-curvature and P
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo.gif?raw=true" alt="demo" style="width: 100%;" />
 </div>
-**New 3D Interactive Visualization in Fiberkit v2.0.0**
 
-<div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.gif?raw=true" alt="demo" style="width: 100%;" />
-</div>
 
 
 
@@ -111,6 +107,10 @@ The script above uses US imperial unit **(kips, in, ksi)**. You may also use SI 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/Icr.png?raw=true" alt="demo" style="width: 80%;" />
 </div>
+
+
+**[New in v2.0.0]** Interactive 3D plot powered by Plotly:
+
 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.gif?raw=true" alt="demo" style="width: 100%;" />
