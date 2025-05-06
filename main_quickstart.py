@@ -27,6 +27,5 @@ PM_results = section1.run_PM_interaction(fpc=4, fy=60, Es=29000)
 fkit.plotter.plot_MK(section1)
 fkit.plotter.plot_PM(section1)
 fkit.plotter.plot_Icr(section1)
-
-
+fkit.plotter.plot_MK_3D(section1) # NEW IN VERSION 2.0.0
 

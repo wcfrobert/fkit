@@ -923,12 +923,12 @@ class Section:
         return [P,Mx,NA_depth,My,resistance_factor, phi_P, phi_Mx, phi_My]
         
         
-    def create_output_folder(self, result_folder):
+    def create_output_folder(self, result_folder = "fkit_result_folder"):
         """
         Helper method to create folder in current working directory. Called by export_data()
         
         Args:
-            result_folder       str:: name of folder to create
+            result_folder       str:: name of folder to create. Default = "fkit_result_folder"
             
         Return:
             None

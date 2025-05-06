@@ -1269,13 +1269,13 @@ my_section.export_data(save_folder="exported_results")
 
 ## Visualizations
 
-`fiberkit.plotter.preview_fiber(fiber, xlim=[-0.03, 0.03])` - Plot fiber stress-strain relationship. Returns the generated matplotlib figure.
+`fiberkit.plotter.preview_fiber(fiber, xlim=[-0.01, 0.01])` - Plot fiber stress-strain relationship. Returns the generated matplotlib figure.
 
 * fiber: fiberkit.NodeFiber object or fiberkit.PatchFiber object
   * fiber object defined by user
 * xlim: [float, float] (OPTIONAL)
   * lower and upper strain limit for plotting purposes
-  * default = [-0.03, 0.03]
+  * default = [-0.01, 0.01]
 
 
 
@@ -1285,7 +1285,7 @@ my_section.export_data(save_folder="exported_results")
 
 
 
-`fiberkit.plotter.compare_fibers(fiber, labels, xlim=[-0.03, 0.03])` - Plot stress-strain relationship of several fibers on the same plot. Returns the generated matplotlib figure.
+`fiberkit.plotter.compare_fibers(fiber, labels, xlim=[-0.01, 0.01])` - Plot stress-strain relationship of several fibers on the same plot. Returns the generated matplotlib figure.
 
 * fibers: [fiberkit.NodeFiber object] or [fiberkit.PatchFiber object]
   * list of fiber object to be compared
@@ -1293,7 +1293,7 @@ my_section.export_data(save_folder="exported_results")
   * list of labels to distinguish between fibers in the legends
 * xlim: [float, float] (OPTIONAL)
   * lower and upper strain limit for plotting purposes
-  * default = [-0.03, 0.03]
+  * default = [-0.01, 0.01]
 
 
 
@@ -1326,6 +1326,22 @@ my_section.export_data(save_folder="exported_results")
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.png?raw=true" alt="demo" style="width: 60%;" />
 </div>
+
+
+`fiberkit.plotter.plot_MK_3D(section)` - Plot moment curvature analysis results using Plotly. Returns a interactive 3D visualization in html format. This is a new feature in v2.0.0.
+
+* section: fiberkit.Section object
+  * section object defined by user
+
+
+
+<div align="center">
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.gif?raw=true" alt="demo" style="width: 60%;" />
+</div>
+
+
+
+
 
 
 

@@ -71,6 +71,11 @@ fiber_data_rebar3 = section1.get_node_fiber_data(tag=3)
 fkit.plotter.plot_MK(section1)
 fkit.plotter.plot_Icr(section1)
 
+# animate results
+#fkit.plotter.animate_MK(section1)
+
+# interactive visualization (new in v2.0.0)
+fkit.plotter.plot_MK_3D(section1)
 
 
 #########################################

@@ -12,10 +12,15 @@ Define fiber material properties, create section, perform moment-curvature and P
 
 
 
-
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo.gif?raw=true" alt="demo" style="width: 100%;" />
 </div>
+**New 3D Interactive Visualization in Fiberkit v2.0.0**
+
+<div align="center">
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.gif?raw=true" alt="demo" style="width: 100%;" />
+</div>
+
 
 
 
@@ -46,6 +51,12 @@ Notable Features:
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/hello_demo.png?raw=true" alt="demo" style="width: 100%;" />
 </div>
+
+
+<div align="center">
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/steel_demo.png?raw=true" alt="demo" style="width: 100%;" />
+</div>
+
 
 
 
@@ -84,6 +95,7 @@ PM_results = section1.run_PM_interaction(fpc=4, fy=60, Es=29000)
 fkit.plotter.plot_MK(section1)
 fkit.plotter.plot_PM(section1)
 fkit.plotter.plot_Icr(section1)
+fkit.plotter.plot_MK_3D(section1) # NEW IN VERSION 2.0.0
 ```
 
 The script above uses US imperial unit **(kips, in, ksi)**. You may also use SI units **(N, mm, MPa)**. The quick start script produces the following plots:
@@ -99,6 +111,13 @@ The script above uses US imperial unit **(kips, in, ksi)**. You may also use SI 
 <div align="center">
   <img src="https://github.com/wcfrobert/fkit/blob/master/doc/Icr.png?raw=true" alt="demo" style="width: 80%;" />
 </div>
+
+<div align="center">
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/demo2.gif?raw=true" alt="demo" style="width: 100%;" />
+</div>
+
+
+
 
 
 
@@ -155,8 +174,6 @@ Fiberkit was developed using python 3.12 (any version above 3.7 will probably wo
 
 
 ## Usage
-
-Three other sample scripts are provided to help get the users up and running. 
 
 `main_fiber.py` - illustrates the available material models within fkit. 
 
@@ -440,6 +457,11 @@ fiber_data_rebar3 = section1.get_node_fiber_data(tag=3)
 fkit.plotter.plot_MK(section1)
 fkit.plotter.plot_Icr(section1)
 
+# animate results
+#fkit.plotter.animate_MK(section1)
+
+# interactive visualization (new in v2.0.0)
+fkit.plotter.plot_MK_3D(section1)
 
 #########################################
 # Step 4: PMM interaction analysis
@@ -530,9 +552,11 @@ Here is a comprehensive list of all public methods available to the user.
 
 **Visualizations**: [More Info](https://github.com/wcfrobert/fkit/tree/master/doc#visualization)
 
-* `fiberkit.plotter.preview_fiber(fiber, xlim=[-0.03, 0.03])`
+* `fiberkit.plotter.preview_fiber(fiber, xlim=[-0.01, 0.01])`
+* `fiberkit.plotter.compare_fiber(fibers, labels, xlim=[-0.01, 0.01])`
 * `fiberkit.plotter.preview_section(section, show_tag=False)`
 * `fiberkit.plotter.plot_MK(section)`
+* `fiberkit.plotter.plot_MK_3D(section)`
 * `fiberkit.plotter.animate_MK(section)`
 * `fiberkit.plotter.plot_Icr(section)`
 * `fiberkit.plotter.plot_PM(section, P=None, M=None)`
@@ -544,32 +568,23 @@ Here is a comprehensive list of all public methods available to the user.
 ## Notes and Assumptions
 
 <div align="center">
-  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/signconvention.png?raw=true" alt="demo" style="width: 45%;" />
+  <img src="https://github.com/wcfrobert/fkit/blob/master/doc/signconvention.png?raw=true" alt="demo" style="width: 100%;" />
 </div>
 
 
 
+
 * Moment curvature analysis proceeds in the -ve Mx direction, where top fibers are increasingly compressed.
-
 * Applied axial force and moment follows the right-hand convention:
-
-
   * Positive (+) applied axial force P results in tension
-
-
   * Positive (+) applied moment Mx results in tension on the top fibers, and compression on bottom fibers.
-
 * Fiber stress and strain sign conventions: 
-
   * Positive (+) is tensile stress/strain
   * Negative (-) is compressive stress/strain
-
 * Please ensure consistent unit input:
   * SI Unit: **(N, mm, MPa)**
   * Imperial Unit: **(kips, in, ksi)**
-
 * PM interaction analysis follows ACI 318-19 assumptions (e.g. rectangular stress block, elastic-perfect-plastic steel, spalling strain of 0.003, etc). Solution is independent of user-specified fiber materials as all concrete fibers are converted to exhibit rectangular stress block behavior, and all rebar fibers are converted to elastic-perfect-plastic behavior.
-
 * Disclaimer: this is not enterprise-grade software. Please do NOT use it for work. Users assume full risk and responsibility for verifying that the results are accurate.
 
 
