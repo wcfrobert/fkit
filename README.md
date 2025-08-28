@@ -73,8 +73,14 @@ import fiberkit as fkit
 fiber_concrete = fkit.patchfiber.Hognestad(fpc=4, take_tension=True)
 fiber_steel    = fkit.nodefiber.Bilinear(fy=60, Es=29000)
 
-# create a rectangular beam section with SectionBuilder
-section1 = fkit.sectionbuilder.rectangular(width = 18, 
+# option 1: draw section manually
+section1 = fkit.Section()
+section1.add_patch(xo=0, yo=0, b=18 ,h=24, nx=25, ny=25, fiber=fiber_concrete)
+section1.add_bar_group(xo=2, yo=2, b=14, h=3, nx=4, ny=2, area=0.6, perimeter_only=False, fiber=fiber_steel)
+section1.add_bar_group(xo=2, yo=22, b=14, h=0, nx=4, ny=1, area=0.6, perimeter_only=False, fiber=fiber_steel)
+
+# option 2: use SectionBuilder to quickly define common sections
+section2 = fkit.sectionbuilder.rectangular(width = 18, 
                                            height = 24, 
                                            cover = 2, 
                                            top_bar = [0.6, 4, 1, 0], #[bar_area, nx, ny, y_spacing]
@@ -578,8 +584,8 @@ Here is a comprehensive list of all public methods available to the user.
   * Positive (+) is tensile stress/strain
   * Negative (-) is compressive stress/strain
 * Please ensure consistent unit input:
-  * SI Unit: **(N, mm, MPa)**
-  * Imperial Unit: **(kips, in, ksi)**
+  * Imperial Unit: **(kips, in, ksi)** (Recommended) 
+  * SI Unit: **(N, mm, MPa)** (in progress... Works numerically but visualization scaling is off)
 * PM interaction analysis follows ACI 318-19 assumptions (e.g. rectangular stress block, elastic-perfect-plastic steel, spalling strain of 0.003, etc). Solution is independent of user-specified fiber materials as all concrete fibers are converted to exhibit rectangular stress block behavior, and all rebar fibers are converted to elastic-perfect-plastic behavior.
 * Disclaimer: this is not enterprise-grade software. Please do NOT use it for work. Users assume full risk and responsibility for verifying that the results are accurate.
 

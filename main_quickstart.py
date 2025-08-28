@@ -4,8 +4,14 @@ import fiberkit as fkit
 fiber_concrete = fkit.patchfiber.Hognestad(fpc=4, take_tension=True)
 fiber_steel    = fkit.nodefiber.Bilinear(fy=60, Es=29000)
 
-# create a rectangular beam section with SectionBuilder
-section1 = fkit.sectionbuilder.rectangular(width = 18, 
+# option 1: draw section manually
+section1 = fkit.Section()
+section1.add_patch(xo=0, yo=0, b=18 ,h=24, nx=25, ny=25, fiber=fiber_concrete)
+section1.add_bar_group(xo=2, yo=2, b=14, h=3, nx=4, ny=2, area=0.6, perimeter_only=False, fiber=fiber_steel)
+section1.add_bar_group(xo=2, yo=22, b=14, h=0, nx=4, ny=1, area=0.6, perimeter_only=False, fiber=fiber_steel)
+
+# option 2: use SectionBuilder to quickly define common sections
+section2 = fkit.sectionbuilder.rectangular(width = 18, 
                                            height = 24, 
                                            cover = 2, 
                                            top_bar = [0.6, 4, 1, 0], #[bar_area, nx, ny, y_spacing]

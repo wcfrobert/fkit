@@ -726,11 +726,11 @@ class Section:
             # calculate current centroid after cracking
             xc = sum([-x*A for x,A in zip(x_list, A_list)]) / sum(A_list)
             yc = sum([-y*A for y,A in zip(y_list, A_list)]) / sum(A_list)
-            x_centroid.append(xc)
-            y_centroid.append(yc)
+            x_centroid.append(self.centroid[0] + xc)
+            y_centroid.append(self.centroid[1] + yc)
             
             # calculate Icr
-            dy_list = [y + (yc - self.centroid[1]) for y in y_list]
+            dy_list = [y + (yc) for y in y_list]
             Icr_current = sum([y*y*A for y,A in zip(dy_list, A_list)])
             Icr.append(Icr_current)
         
