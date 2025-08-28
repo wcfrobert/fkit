@@ -219,7 +219,7 @@ def plot_MK_3D(section):
                                 line_width = 2,
                                 line_color = "mediumblue",
                                 showlegend=False,
-                                hovertemplate='Moment = %{{y}}<br>Curvature = %{{x:.2e}}<extra></extra>')
+                                hovertemplate='Moment = %{y}<br>Curvature = %{x:.2e}<extra></extra>')
         if STEP == 0:
             fig.add_trace(mk_trace, row=1, col=2)
             N_STATIC_TRACES +=1
